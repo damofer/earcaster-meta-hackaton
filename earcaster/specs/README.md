@@ -45,6 +45,9 @@ Una spec no cambia en silencio: si al construirla algo resulta distinto, se corr
 | 4 · Cuidador conectado e IA | [017](017-conversacion-con-ia/spec.md) | Conversación con IA y voz natural de ElevenLabs | Desplegada; falta probarla en dos teléfonos |
 | 4 · Cuidador conectado e IA | [018](018-choose-ai-model/spec.md) | Choose the AI model: Claude or Meta (Muse Spark) | En curso |
 | 4 · Cuidador conectado e IA | [019](019-daily-summary/spec.md) | The caregiver's daily summary (Muse Spark) | En curso |
+| 4 · Cuidador conectado e IA | [020](020-family-updates/spec.md) | The family updates the profile by writing | Planned |
+| 4 · Cuidador conectado e IA | [021](021-visit-brief/spec.md) | Before the visit: a brief for the visitor | Planned |
+| 4 · Cuidador conectado e IA | [022](022-change-alert/spec.md) | Alert when something changes | Planned |
 
 Las specs de etapas futuras quedan como **Borrador** y se revisan al empezar su etapa, con lo aprendido en la anterior. Los números identifican la spec, no el orden: la 014 va primero en la etapa 2 porque responde a la pregunta que más cambia.
 

@@ -18,7 +18,7 @@ A caregiver who lives away does not have time to read every conversation of the 
 ## Requirements
 
 - **R1.** In **Assistant**, a **Today's summary** section with a **Write it now** button. The summary covers the phone's day, from local midnight until now.
-- **R2.** The summary uses: the AI conversations (017), the doses logged (009) and the help alerts (006) of the day, plus the names of the expected doses. It never sends phone numbers.
+- **R2.** The summary uses: the AI conversations (017), the doses logged (007) and the help alerts (009) of the day, plus the names of the expected doses. It never sends phone numbers.
 - **R3.** Muse Spark writes it through the `earcaster-muse` engine, in at most five sentences, in the app's language. The numbers (questions, repeated questions, doses logged and missing, help alerts) are counted in code, not by the model.
 - **R4.** Every sentence goes through the same guard as the spoken answers: a sentence with a time, day, date or name that is not in the log is dropped, and so is any medical advice.
 - **R5.** It only runs with the caregiver's consent (017 R13), which already names Meta.
