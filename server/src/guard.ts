@@ -137,8 +137,8 @@ export function speakable(s: string): string {
 /** Splits streamed text into finished sentences and the part still waiting for more text. */
 export function takeSentences(buffer: string): { sentences: string[]; rest: string } {
   const sentences: string[] = [];
-  // A dot between digits ("5.30") does not end a sentence.
-  const re = /(?:[^.!?…\n]|\.(?=\d))*[.!?…]+["»”)]*(?=\s|$)|[^\n]*\n/y;
+  // A dot between digits ("5.30") does not end a sentence, nor do the dots of "a. m." and "p. m." unless the sentence ends there.
+  const re = /(?:(?<![\p{L}])[ap]\.\s?m\.(?=\s+[\p{Ll}\d])|(?<![\p{L}])[ap]\.(?=\s?m\.)|[^.!?…\n]|\.(?=\d))*[.!?…]+["»”)]*(?=\s|$)|[^\n]*\n/uy;
   let last = 0;
   let m: RegExpExecArray | null;
   while ((m = re.exec(buffer)) && m[0].length) {

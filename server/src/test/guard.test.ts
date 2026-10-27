@@ -70,6 +70,8 @@ test("markdown and emoji are not spoken", () => {
 test("streamed text is split into finished sentences", () => {
   assert.deepEqual(takeSentences("Hola Mari. Ana vie"), { sentences: ["Hola Mari."], rest: " Ana vie" });
   assert.deepEqual(takeSentences("Hola Mari."), { sentences: [], rest: "Hola Mari." });
+  assert.deepEqual(takeSentences("Preguntó a las 9:15 a. m. y a las 11:02 a. m. Luego durmió.\n").sentences,
+    ["Preguntó a las 9:15 a. m. y a las 11:02 a. m.", "Luego durmió."]);
   assert.deepEqual(takeSentences("Son las 5.30 ya. Bien"), { sentences: ["Son las 5.30 ya."], rest: " Bien" });
   assert.deepEqual(takeSentences("¿Quién eres? Soy Clara. "), { sentences: ["¿Quién eres?", "Soy Clara."], rest: " " });
 });

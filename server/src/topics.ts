@@ -67,9 +67,26 @@ function jsonIn(text: string): unknown {
   }
 }
 
+function hasTopics(raw: unknown): boolean {
+  return !!raw && typeof raw === "object" && Array.isArray((raw as Record<string, unknown>).topics);
+}
+
+/** Asks once more when the first answer has no topics list, then says why in dropped if the second has none either. */
 export async function groupTopics(lang: Lang, texts: string[], apiKey: string): Promise<{ topics: Topic[]; dropped: string[] }> {
+  let why = "";
+  for (let attempt = 0; attempt < 2; attempt++) {
+    const { raw, finishReason } = await askTopics(lang, texts, apiKey);
+    const parsed = jsonIn(raw);
+    if (hasTopics(parsed)) return checkTopics(parsed, texts);
+    why = `no topics (${raw.trim() ? "not JSON" : "no text"}, ${finishReason || "no finish reason"})`;
+  }
+  const out = checkTopics({}, texts);
+  return { topics: out.topics, dropped: [why] };
+}
+
+async function askTopics(lang: Lang, texts: string[], apiKey: string): Promise<{ raw: string; finishReason: string | null }> {
   let raw = "";
-  await streamMuse({
+  const end = await streamMuse({
     apiKey,
     messages: [
       { role: "developer", content: topicsPrompt(lang) },
@@ -80,5 +97,5 @@ export async function groupTopics(lang: Lang, texts: string[], apiKey: string): 
     maxTokens: 6000,
     onText: (delta) => (raw += delta),
   });
-  return checkTopics(jsonIn(raw), texts);
+  return { raw, finishReason: end.finishReason };
 }
