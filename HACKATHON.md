@@ -4,7 +4,7 @@ The rules ask that judges can tell what was created during the event. This file 
 
 ## Before October 26, 2026 (not part of this repository)
 
-Earcaster, my existing Android app, lives in a separate private repository. It already did, with no AI from Meta:
+Earcaster, my existing Android app, lives in a separate private repository. I started it on October 19, 2026 (its first commit), one week before the hackathon. Before the event it already did, with no AI from Meta:
 
 - Offline speech recognition on the phone (Vosk) and fixed phrases set by a caregiver.
 - Spoken answers with the real time, date and next visit from a shared calendar; medication reminders and a dose log; a help alert by SMS.
