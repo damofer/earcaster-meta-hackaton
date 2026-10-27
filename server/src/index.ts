@@ -15,6 +15,7 @@ import * as logger from "firebase-functions/logger";
 
 import type { Response } from "express";
 
+import { brief, weekFrom } from "./brief";
 import { Budget, demoQuestion } from "./demo";
 import { answer } from "./engine";
 import { MUSE_MODEL } from "./muse";
@@ -155,6 +156,32 @@ export const museUpdates = onRequest(
       res.json({ ...(await proposeUpdates(r, META_API_KEY.value().trim())), model: MUSE_MODEL });
     } catch (e) {
       logger.error("Muse Spark could not read the message", e);
+      res.status(502).end();
+    }
+  },
+);
+
+/** Spec 021: the brief for a relative about to visit. POST a Week (brief.ts) with the ENGINE_TOKEN; replies {text, stats, dropped}. */
+export const museBrief = onRequest(
+  { secrets: [META_API_KEY, ENGINE_TOKEN], timeoutSeconds: 60, memory: "256MiB" },
+  async (req, res) => {
+    if (req.method !== "POST") {
+      res.status(405).end();
+      return;
+    }
+    if (!authorized(req.get("authorization"), ENGINE_TOKEN.value().trim())) {
+      res.status(401).end();
+      return;
+    }
+    const w = weekFrom(req.body);
+    if (!w) {
+      res.status(400).end();
+      return;
+    }
+    try {
+      res.json({ ...(await brief(w, META_API_KEY.value().trim())), model: MUSE_MODEL });
+    } catch (e) {
+      logger.error("Muse Spark could not write the brief", e);
       res.status(502).end();
     }
   },
