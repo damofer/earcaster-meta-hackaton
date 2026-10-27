@@ -71,4 +71,19 @@ public class ProfileTest {
         assertTrue(p.calls.isEmpty());
         assertEquals(Arrays.asList("a"), p.doses);
     }
+
+    @Test
+    public void familyUpdateReplacesOrAdds() {
+        Profile p = new Profile();
+        p.family = "Su hija Lucía vive en Barranquilla. Su hijo Andrés vive en Bogotá.";
+        p.apply("family", "Su hijo Andrés vive en Bogotá.", "Su hijo Andrés vive en Medellín.");
+        assertEquals("Su hija Lucía vive en Barranquilla. Su hijo Andrés vive en Medellín.", p.family);
+        // An old sentence that is no longer there: the new one is added at the end.
+        p.apply("family", "Su hijo vive en Cali.", "Su nieto Mateo vive con Lucía.");
+        assertTrue(p.family.endsWith("Medellín. Su nieto Mateo vive con Lucía."));
+        p.apply("likes", "", "Le gusta la cumbia.");
+        assertEquals("Le gusta la cumbia.", p.likes);
+        p.apply("other", "", "Usa audífono.");
+        assertEquals("Usa audífono.", p.free);
+    }
 }

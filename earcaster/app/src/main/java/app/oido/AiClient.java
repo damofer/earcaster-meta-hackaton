@@ -49,7 +49,8 @@ final class AiClient {
     private static final int CONNECT_TIMEOUT_MS = 6_000;
     private static final int READ_TIMEOUT_MS = 10_000;
     /** Preview replies and the voice list do not speak: they may take a little longer. */
-    private static final int CAREGIVER_TIMEOUT_MS = 30_000;
+    // Muse Spark reasons before writing a summary or reading a family message (specs 019, 020).
+    private static final int CAREGIVER_TIMEOUT_MS = 45_000;
 
     /** How a question ended. */
     static final class Result {

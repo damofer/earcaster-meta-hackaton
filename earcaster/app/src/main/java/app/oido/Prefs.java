@@ -78,6 +78,11 @@ final class Prefs {
         return Agenda.Fixed.fromJson(sp(c).getString("fixed_visits", null));
     }
 
+    /** One-off visits approved from a family message (spec 020). */
+    static List<Agenda.Once> onceVisits(Context c) {
+        return Agenda.Once.fromJson(sp(c).getString("once_visits", null));
+    }
+
     static void setFixedVisits(Context c, List<Agenda.Fixed> list) {
         sp(c).edit().putString("fixed_visits", Agenda.Fixed.toJson(list)).apply();
     }
@@ -194,6 +199,7 @@ final class Prefs {
             o.put("strictness", strictness(c));
             o.put("visits_calendar", calendarOn(c));
             o.put("fixed_visits", p.getString("fixed_visits", "[]"));
+            o.put("once_visits", p.getString("once_visits", "[]"));
             o.put("person_name", personName(c));
             o.put("help_accepted", helpAccepted(c));
             o.put(AI_ON, aiOn(c));
@@ -221,6 +227,7 @@ final class Prefs {
             if (o.has("strictness")) e.putInt("strictness", o.getInt("strictness"));
             if (o.has("visits_calendar")) e.putBoolean("visits_calendar", o.getBoolean("visits_calendar"));
             if (o.has("fixed_visits")) e.putString("fixed_visits", o.getString("fixed_visits"));
+            if (o.has("once_visits")) e.putString("once_visits", o.getString("once_visits"));
             if (o.has("person_name")) e.putString("person_name", o.getString("person_name"));
             if (o.has("help_accepted")) e.putBoolean("help_accepted", o.getBoolean("help_accepted"));
             if (o.has(AI_ON)) e.putBoolean(AI_ON, o.getBoolean(AI_ON));

@@ -17,6 +17,7 @@ import { resolve, tools } from "./actions";
 import { EvenChunker, frame } from "./frames";
 import { askMuse } from "./muse";
 import { askSummary, dayLog } from "./summary";
+import { askUpdates, profileTexts, weeklyVisitsFrom, withoutNumbers } from "./updates";
 import { systemPrompt } from "./prompt";
 import { aiSettings } from "./settings";
 import { MAX_SENTENCES, checkSentence, takeSentences } from "./speech";
@@ -624,6 +625,61 @@ export const summaryNow = onRequest(
       res.json(summary);
     } catch (e) {
       logger.error("Could not write the summary", e);
+      res.status(502).end();
+    }
+  },
+);
+
+/**
+ * Spec 020: proposals from a family message, for the caregiver to approve. Saves nothing: the phone writes each
+ * approved change. The message is not stored, and phone numbers are removed before it goes to Meta.
+ */
+export const proposeUpdates = onRequest(
+  { secrets: [ENGINE_TOKEN], timeoutSeconds: 60 },
+  async (req, res) => {
+    if (req.method !== "POST") {
+      res.status(405).end();
+      return;
+    }
+    const who = await caller(req);
+    if (!who || who.anonymous) {
+      res.status(401).end();
+      return;
+    }
+    const body = (req.body || {}) as Record<string, unknown>;
+    const pid = str(body.pid, 64);
+    const today = typeof body.today === "string" && /^\d{4}-\d{2}-\d{2}$/.test(body.today) ? body.today : "";
+    const message = withoutNumbers(str(body.message, 1000));
+    if (!pid || !today || !message) {
+      res.status(400).end();
+      return;
+    }
+    const patient = db.collection("patients").doc(pid);
+    const snap = await patient.get();
+    if (!snap.exists || snap.get("caregiverUid") !== who.uid) {
+      res.status(403).end();
+      return;
+    }
+    // The message goes to Meta: only with the caregiver's consent (017 R13).
+    if (!snap.get("aiConsentAt")) {
+      res.status(403).end();
+      return;
+    }
+    if (!(await countAnswer(patient, `cambios-${today}`, 30))) {
+      res.status(429).end();
+      return;
+    }
+    try {
+      const profile = profileFrom((await patient.collection("private").doc("profile").get()).data());
+      res.json(await askUpdates(ENGINE_TOKEN.value().trim(), {
+        lang: langOf(req),
+        today,
+        message,
+        profile: profileTexts(profile),
+        visits: weeklyVisitsFrom(snap.get("config")),
+      }));
+    } catch (e) {
+      logger.error("Could not read the family message", e);
       res.status(502).end();
     }
   },

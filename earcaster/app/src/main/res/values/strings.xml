@@ -509,4 +509,32 @@
     <string name="generar_ahora">Generar ahora</string>
     <string name="ai_summary_writing">Escribiendo el resumen…</string>
     <string name="ai_summary_empty">Hoy no hay nada apuntado todavía.</string>
+    <!-- Family updates (spec 020) -->
+    <string name="actualizar_desde_un_mensaje">Actualizar desde un mensaje</string>
+    <string name="up_title_of">Actualizar a %1$s desde un mensaje</string>
+    <string name="up_hint">Pega o comparte un mensaje de la familia, por ejemplo «Llego el domingo a las 5». Muse Spark, de Meta, propone los cambios de visitas o de la ficha, y nada cambia hasta que lo apruebes. Los números de teléfono se quitan antes de enviarlo y el mensaje no se guarda.</string>
+    <string name="up_message">Mensaje de la familia</string>
+    <string name="up_read">Leer el mensaje</string>
+    <string name="up_reading">Leyendo el mensaje…</string>
+    <string name="up_found">Revisa cada cambio antes de aprobarlo:</string>
+    <string name="up_nothing">No encontré nada que actualizar en este mensaje.</string>
+    <string name="up_medication">Las tomas no se cambian desde un mensaje. Cámbialas en Recordatorios.</string>
+    <string name="up_caregiver_only">Para actualizar desde un mensaje, abre Earcaster en modo cuidador.</string>
+    <string name="up_no_patients">Todavía no tienes pacientes.</string>
+    <string name="up_which_patient">¿A quién es este mensaje?</string>
+    <string name="up_kind_visit">Visita nueva</string>
+    <string name="up_kind_weekly">Visita de cada semana</string>
+    <string name="up_kind_profile">Ficha · %1$s</string>
+    <string name="up_visit_line">%1$s · %2$s · %3$s</string>
+    <string name="up_before">Antes: %1$s</string>
+    <string name="up_saved">Guardado.</string>
+    <string name="up_discarded">Descartado.</string>
+    <string name="up_field_home">Dónde vive</string>
+    <string name="up_field_family">Familia</string>
+    <string name="up_field_routine">Rutina</string>
+    <string name="up_field_likes">Gustos</string>
+    <string name="up_field_free">Otros datos</string>
+    <string name="aprobar">Aprobar</string>
+    <string name="descartar">Descartar</string>
+    <string name="up_open">Actualizar desde un mensaje de la familia</string>
 </resources>

@@ -1,6 +1,7 @@
 package app.oido;
 
 import android.content.Context;
+import android.content.Intent;
 import android.media.AudioAttributes;
 import android.media.MediaPlayer;
 import android.os.Bundle;
@@ -97,6 +98,9 @@ public class AiActivity extends AppCompatActivity {
         findViewById(R.id.ai_save).setOnClickListener(v -> save(true));
         findViewById(R.id.ai_talks_delete).setOnClickListener(v -> confirmDeleteTalks());
         findViewById(R.id.ai_summary_now).setOnClickListener(v -> summarize());
+        findViewById(R.id.ai_updates).setOnClickListener(v -> startActivity(new Intent(this, UpdatesActivity.class)
+                .putExtra(MainActivity.EXTRA_PATIENT, pid)
+                .putExtra(MainActivity.EXTRA_PATIENT_NAME, getIntent().getStringExtra(MainActivity.EXTRA_PATIENT_NAME))));
 
         setEnabled(false);
         status.setText(R.string.reading);

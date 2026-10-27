@@ -506,4 +506,32 @@
     <string name="generar_ahora">Write it now</string>
     <string name="ai_summary_writing">Writing the summary…</string>
     <string name="ai_summary_empty">Nothing is written down for today yet.</string>
+    <!-- Family updates (spec 020) -->
+    <string name="actualizar_desde_un_mensaje">Update from a message</string>
+    <string name="up_title_of">Update %1$s from a message</string>
+    <string name="up_hint">Paste or share a family message, for example \"I\'ll be there Sunday at 5\". Muse Spark, by Meta, proposes the visit or profile changes, and nothing changes until you approve it. Phone numbers are removed before sending and the message is not kept.</string>
+    <string name="up_message">Family message</string>
+    <string name="up_read">Read the message</string>
+    <string name="up_reading">Reading the message…</string>
+    <string name="up_found">Check each change before approving it:</string>
+    <string name="up_nothing">I found nothing to update in this message.</string>
+    <string name="up_medication">Doses are not changed from a message. Change them in Reminders.</string>
+    <string name="up_caregiver_only">To update from a message, open Earcaster in caregiver mode.</string>
+    <string name="up_no_patients">You have no patients yet.</string>
+    <string name="up_which_patient">Who is this message about?</string>
+    <string name="up_kind_visit">New visit</string>
+    <string name="up_kind_weekly">Weekly visit</string>
+    <string name="up_kind_profile">Profile · %1$s</string>
+    <string name="up_visit_line">%1$s · %2$s · %3$s</string>
+    <string name="up_before">Before: %1$s</string>
+    <string name="up_saved">Saved.</string>
+    <string name="up_discarded">Discarded.</string>
+    <string name="up_field_home">Where they live</string>
+    <string name="up_field_family">Family</string>
+    <string name="up_field_routine">Routine</string>
+    <string name="up_field_likes">Likes</string>
+    <string name="up_field_free">Other details</string>
+    <string name="aprobar">Approve</string>
+    <string name="descartar">Discard</string>
+    <string name="up_open">Update from a family message</string>
 </resources>

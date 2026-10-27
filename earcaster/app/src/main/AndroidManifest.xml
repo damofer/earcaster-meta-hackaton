@@ -75,6 +75,19 @@
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
 
+        <!-- A family message shared from any app (spec 020) -->
+        <activity
+            android:name=".UpdatesActivity"
+            android:exported="true"
+            android:label="@string/up_open"
+            android:windowSoftInputMode="adjustResize">
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="text/plain" />
+            </intent-filter>
+        </activity>
+
         <activity
             android:name=".PatientActivity"
             android:exported="false"

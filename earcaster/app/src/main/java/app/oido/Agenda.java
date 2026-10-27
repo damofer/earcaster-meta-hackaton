@@ -71,6 +71,67 @@ final class Agenda implements SpokenText.Sources {
         }
     }
 
+    /**
+     * A visit on one day only (spec 020): «Lucía · 2026-11-01 · 17:00». It is spoken like a recurring one and is
+     * dropped once it is over.
+     */
+    static final class Once {
+        String name;
+        /** yyyy-MM-dd on the person's phone. */
+        String date;
+        int minute;
+
+        Once(String name, String date, int minute) {
+            this.name = name;
+            this.date = date;
+            this.minute = minute;
+        }
+
+        /** Start in this phone's time zone, or -1 if the date cannot be read. */
+        long start() {
+            String[] p = date.split("-");
+            if (p.length != 3) return -1;
+            try {
+                Calendar c = Calendar.getInstance();
+                c.clear();
+                c.set(Integer.parseInt(p[0]), Integer.parseInt(p[1]) - 1, Integer.parseInt(p[2]), minute / 60, minute % 60);
+                return c.getTimeInMillis();
+            } catch (NumberFormatException e) {
+                return -1;
+            }
+        }
+
+        boolean over(long now) {
+            long s = start();
+            return s < 0 || s + FIXED_LENGTH_MS <= now;
+        }
+
+        static String toJson(List<Once> list) {
+            JSONArray arr = new JSONArray();
+            try {
+                for (Once o : list) {
+                    arr.put(new JSONObject().put("name", o.name).put("date", o.date).put("minute", o.minute));
+                }
+            } catch (JSONException ignored) {
+            }
+            return arr.toString();
+        }
+
+        static List<Once> fromJson(String json) {
+            List<Once> out = new ArrayList<>();
+            if (json == null) return out;
+            try {
+                JSONArray arr = new JSONArray(json);
+                for (int i = 0; i < arr.length(); i++) {
+                    JSONObject o = arr.getJSONObject(i);
+                    out.add(new Once(o.optString("name", ""), o.optString("date", ""), o.optInt("minute", 0)));
+                }
+            } catch (JSONException ignored) {
+            }
+            return out;
+        }
+    }
+
     private final Context ctx;
 
     /** ctx is used when querying, not here: an activity creates this before it is ready. */
@@ -89,6 +150,10 @@ final class Agenda implements SpokenText.Sources {
             if (!SpokenText.mentions(f.name, name)) continue;
             long start = Weekly.next(f.days, f.minute, FIXED_LENGTH_MS, now);
             if (start >= 0) best = sooner(best, new SpokenText.Visit(start, start + FIXED_LENGTH_MS, false));
+        }
+        for (Once o : Prefs.onceVisits(ctx)) {
+            if (!SpokenText.mentions(o.name, name) || o.over(now.getTimeInMillis())) continue;
+            best = sooner(best, new SpokenText.Visit(o.start(), o.start() + FIXED_LENGTH_MS, false));
         }
         if (Prefs.calendarOn(ctx) && canReadCalendar(ctx)) {
             best = sooner(best, fromCalendar(name, now));
@@ -180,6 +245,11 @@ final class Agenda implements SpokenText.Sources {
             if (start >= 0 && start - now.getTimeInMillis() <= UPCOMING_MS) {
                 all.add(new Event(f.name.trim(), new SpokenText.Visit(start, start + FIXED_LENGTH_MS, false)));
             }
+        }
+        for (Once o : Prefs.onceVisits(ctx)) {
+            long start = o.start();
+            if (o.name.trim().isEmpty() || o.over(now.getTimeInMillis()) || start - now.getTimeInMillis() > UPCOMING_MS) continue;
+            all.add(new Event(o.name.trim(), new SpokenText.Visit(start, start + FIXED_LENGTH_MS, false)));
         }
         if (withCalendar && Prefs.calendarOn(ctx) && canReadCalendar(ctx)) {
             all.addAll(calendarEvents(now, UPCOMING_MS));

@@ -119,4 +119,25 @@ final class Profile {
     private static String clean(String s) {
         return s == null ? "" : s.trim();
     }
+
+    /** A change approved from a family message (spec 020): replaces the old sentence, or adds the new one at the end of the field. */
+    void apply(String field, String old, String text) {
+        String current;
+        switch (field) {
+            case "home": current = home; break;
+            case "family": current = family; break;
+            case "routine": current = routine; break;
+            case "likes": current = likes; break;
+            default: current = free; break;
+        }
+        String updated = !old.isEmpty() && current.contains(old) ? current.replace(old, text)
+                : (current.trim().isEmpty() ? text : current.trim() + " " + text);
+        switch (field) {
+            case "home": home = updated; break;
+            case "family": family = updated; break;
+            case "routine": routine = updated; break;
+            case "likes": likes = updated; break;
+            default: free = updated; break;
+        }
+    }
 }

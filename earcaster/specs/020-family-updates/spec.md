@@ -1,7 +1,7 @@
 # 020 · The family updates the profile by writing
 
 **Stage:** 4 · Connected caregiver and AI
-**Status:** Planned
+**Status:** In progress
 
 > Written during the Meta Global AI Developer Hackathon, in English.
 
@@ -37,12 +37,12 @@ The answers are only as good as the profile and the visit schedule (014, 016), a
 
 - **Engine (public repo):** `museUpdates` with a strict JSON schema output; the trace check (R4) and the medication filter (R5) run in code on the result.
 - **Server:** `proposeUpdates` checks the caregiver, removes phone numbers, calls the engine and returns the proposals; it saves nothing.
-- **App:** an `ACTION_SEND` text intent filter; the proposals screen; one-off visits stored next to `fixed_visits` and read by `Agenda`.
+- **App:** an `ACTION_SEND` text intent filter; the proposals screen; one-off visits stored as `once_visits` next to `fixed_visits` in the settings and read by `Agenda`; an approved change is written by the caregiver's phone (settings or `private/profile`), never by the function.
 
 ## Tasks
 
-- [ ] T1. `museUpdates` with tests for dates, traceability and medication (R2, R4, R5).
-- [ ] T2. `proposeUpdates` with number removal (R6).
-- [ ] T3. Share target, paste field and proposal cards (R1, R3).
-- [ ] T4. One-off visits in `Agenda` (R7).
+- [x] T1. `museUpdates` with tests for dates, traceability and medication (R2, R4, R5).
+- [x] T2. `proposeUpdates` with number removal (R6).
+- [x] T3. Share target, paste field and proposal cards (R1, R3).
+- [x] T4. One-off visits in `Agenda` (R7).
 - [ ] T5. Check criteria 1 to 5 on a phone.
