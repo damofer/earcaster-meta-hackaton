@@ -23,6 +23,7 @@ import { questionFrom } from "./request";
 import { dayFrom, summarize } from "./summary";
 import { Question, langFrom } from "./types";
 import { proposeUpdates, requestFrom } from "./updates";
+import { groupTopics, textsFrom } from "./topics";
 
 const META_API_KEY = defineSecret("META_API_KEY");
 /** Shared with Earcaster's own function, the only caller. */
@@ -182,6 +183,32 @@ export const museBrief = onRequest(
       res.json({ ...(await brief(w, META_API_KEY.value().trim())), model: MUSE_MODEL });
     } catch (e) {
       logger.error("Muse Spark could not write the brief", e);
+      res.status(502).end();
+    }
+  },
+);
+
+/** Spec 022: groups the person's questions into topics. POST {lang, texts} with the ENGINE_TOKEN; replies {topics, dropped}. */
+export const museTopics = onRequest(
+  { secrets: [META_API_KEY, ENGINE_TOKEN], timeoutSeconds: 60, memory: "256MiB" },
+  async (req, res) => {
+    if (req.method !== "POST") {
+      res.status(405).end();
+      return;
+    }
+    if (!authorized(req.get("authorization"), ENGINE_TOKEN.value().trim())) {
+      res.status(401).end();
+      return;
+    }
+    const q = textsFrom(req.body);
+    if (!q) {
+      res.status(400).end();
+      return;
+    }
+    try {
+      res.json({ ...(await groupTopics(q.lang, q.texts, META_API_KEY.value().trim())), model: MUSE_MODEL });
+    } catch (e) {
+      logger.error("Muse Spark could not group the questions", e);
       res.status(502).end();
     }
   },
