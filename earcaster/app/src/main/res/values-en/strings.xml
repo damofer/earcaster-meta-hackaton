@@ -545,4 +545,8 @@
     <string name="brief_writing">Writing the brief of the week…</string>
     <string name="brief_share">Share</string>
     <string name="brief_range">%1$s to %2$s</string>
+    <!-- Change alerts (spec 022) -->
+    <string name="alert_title">Something changed</string>
+    <string name="alert_seen">Seen</string>
+    <string name="alert_not_useful">Not useful</string>
 </resources>

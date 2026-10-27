@@ -152,6 +152,8 @@ final class AiClient {
                 body.put("pid", pid);
                 body.put("text", text);
                 body.put("day", day(now));
+                // To notice questions at night (spec 022).
+                body.put("hour", now.get(Calendar.HOUR_OF_DAY));
                 // The language the AI answers and speaks in.
                 body.put("lang", Lang.code(ctx));
                 body.put("facts", facts(ctx, now, true));

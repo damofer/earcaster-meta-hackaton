@@ -548,4 +548,8 @@
     <string name="brief_writing">Escribiendo el resumen de la semana…</string>
     <string name="brief_share">Compartir</string>
     <string name="brief_range">del %1$s al %2$s</string>
+    <!-- Change alerts (spec 022) -->
+    <string name="alert_title">Algo cambió</string>
+    <string name="alert_seen">Visto</string>
+    <string name="alert_not_useful">No es útil</string>
 </resources>

@@ -126,6 +126,7 @@ public class AiActivity extends AppCompatActivity {
         Cloud.fetchUsage(pid, AiClient.day(Calendar.getInstance()), (count, error) -> {
             if (count != null && !isFinishing()) renderUsage(count);
         });
+        checkChanges();
         talksReg = Cloud.listenTalks(pid, (list, error) -> {
             if (list != null && !isFinishing()) renderTalks(list);
         });
@@ -362,6 +363,66 @@ public class AiActivity extends AppCompatActivity {
             String said = r.optString("text");
             text.setText(said.isEmpty() ? getString(R.string.ai_summary_empty) : said);
         });
+    }
+
+    // --- Change alerts (spec 022) ---
+
+    private void checkChanges() {
+        Calendar now = Calendar.getInstance();
+        Calendar recent = (Calendar) now.clone();
+        recent.add(Calendar.DAY_OF_MONTH, -2);
+        recent.set(Calendar.HOUR_OF_DAY, 0);
+        recent.set(Calendar.MINUTE, 0);
+        recent.set(Calendar.SECOND, 0);
+        recent.set(Calendar.MILLISECOND, 0);
+        Calendar base = (Calendar) recent.clone();
+        base.add(Calendar.DAY_OF_MONTH, -14);
+        JSONObject body = new JSONObject();
+        try {
+            body.put("pid", pid);
+            body.put("day", AiClient.day(now));
+            body.put("recentFrom", recent.getTimeInMillis());
+            body.put("baseFrom", base.getTimeInMillis());
+        } catch (JSONException e) {
+            return;
+        }
+        // Quietly: without consent or without the engine there is simply nothing to show.
+        AiClient.call("changesNow", body, (r, error) -> {
+            if (r == null || isFinishing() || isDestroyed()) return;
+            JSONArray list = r.optJSONArray("alerts");
+            LinearLayout box = findViewById(R.id.ai_alerts);
+            box.removeAllViews();
+            for (int k = 0; list != null && k < list.length(); k++) {
+                JSONObject a = list.optJSONObject(k);
+                if (a != null) addAlert(box, a);
+            }
+        });
+    }
+
+    private void addAlert(LinearLayout box, JSONObject a) {
+        View card = getLayoutInflater().inflate(R.layout.item_alert, box, false);
+        String id = a.optString("id");
+        ((TextView) card.findViewById(R.id.al_text)).setText(a.optString("text"));
+        JSONArray quotes = a.optJSONArray("quotes");
+        if (quotes != null && quotes.length() > 0) {
+            StringBuilder sb = new StringBuilder();
+            for (int k = 0; k < quotes.length(); k++) {
+                if (k > 0) sb.append('\n');
+                sb.append(getString(R.string.quoted, quotes.optString(k)));
+            }
+            TextView q = card.findViewById(R.id.al_quotes);
+            q.setText(sb);
+            q.setVisibility(View.VISIBLE);
+        }
+        card.findViewById(R.id.al_seen).setOnClickListener(v -> {
+            Cloud.markAlert(pid, id, true);
+            box.removeView(card);
+        });
+        card.findViewById(R.id.al_not_useful).setOnClickListener(v -> {
+            Cloud.markAlert(pid, id, false);
+            box.removeView(card);
+        });
+        box.addView(card);
     }
 
     // --- Before the visit (spec 021) ---

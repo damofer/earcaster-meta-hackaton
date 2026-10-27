@@ -1,7 +1,7 @@
 # 022 · Alert when something changes
 
 **Stage:** 4 · Connected caregiver and AI
-**Status:** Planned
+**Status:** In progress
 
 > Written during the Meta Global AI Developer Hackathon, in English.
 
@@ -17,10 +17,10 @@ The same questions every day are expected. What a family wants to notice early i
 
 ## Requirements
 
-- **R1.** Once a day, and when the caregiver opens **Assistant**, Earcaster compares the last 3 days with the 14 days before.
-- **R2.** The changes are detected **in code**, not by the model: (a) a new topic asked at least 3 times in 3 days that was not asked before; (b) twice as many questions as the usual daily average, with at least 10; (c) questions between 10 PM and 5 AM on 2 or more nights, when there were none before; (d) more help alerts than in the previous 14 days.
+- **R1.** At most once a day, when the caregiver opens **Assistant**, Earcaster compares the last 3 days with the 14 days before.
+- **R2.** The changes are detected **in code**, not by the model: (a) a new topic asked at least 3 times in 3 days that was not asked before; (b) twice as many questions as the usual daily average, with at least 10; (c) questions between 10 PM and 5 AM on 2 or more nights, when there were none before; (d) at least 2 help alerts in the last 3 days, and more than in the 14 days before.
 - **R3.** Grouping questions into topics ("¿dónde está Jorge?" and "¿Jorge ya llegó?" are the same topic) is done by Muse Spark, which may only group the questions it receives and must return the exact original texts.
-- **R4.** The alert is one notification to the caregiver and a card in **Assistant**: what changed, since when, and two or three of the real questions, quoted. Muse Spark writes the card's sentence; the guard checks it (017 R4) and it may not contain any word about illness, diagnosis, decline or stage.
+- **R4.** The alert is a card at the top of **Assistant**: what changed, since when, and two or three of the real questions, quoted. The sentence comes from a fixed template filled in code, not from the model, so it cannot contain any word about illness, diagnosis, decline or stage. A push notification is left for later.
 - **R5.** At most one alert per kind every 7 days. The caregiver can mark it **Seen** or **Not useful**; **Not useful** silences that topic for 30 days.
 - **R6.** With fewer than 7 days of history, there are no alerts. It uses the same consent as the conversations (017 R13).
 
@@ -34,16 +34,16 @@ The same questions every day are expected. What a family wants to notice early i
 
 ## Plan
 
-- **Engine:** `museTopics` (grouping with exact texts, checked in code) and the alert sentence through the guard plus a blocklist of medical words.
-- **Server:** `changesNow` on demand; reads 17 days of `talks` and `events`. Conversations are kept 7 days today (017), so the check keeps only daily per-topic counts for 30 days in `patients/{pid}/trends/{day}`, not the conversations themselves.
-- **App:** alert card in **Assistant** with **Seen** and **Not useful**, and a notification.
+- **Engine:** `museTopics`, grouping with exact texts and labels taken from them, checked in code.
+- **Server:** each answer adds to `patients/{pid}/trends/{day}` (questions, night questions, count per question), kept 30 days, because conversations are kept only 7 (017). `changesNow` reads 17 days of trends and help alerts, groups the questions with `museTopics` (each question alone if the engine fails), runs the rules in `changes.ts` and writes `alerts/{kind-key}`.
+- **App:** alert cards in **Assistant** with **Seen** and **Not useful**; the phone sends the hour with each question.
 
 ## Tasks
 
-- [ ] T1. Daily per-topic counts in `trends` (R1, R6).
-- [ ] T2. Change rules in code with tests (R2, R5).
-- [ ] T3. `museTopics` and the alert sentence with the medical blocklist (R3, R4).
-- [ ] T4. Card and notification (R4, R5).
+- [x] T1. Daily per-topic counts in `trends` (R1, R6).
+- [x] T2. Change rules in code with tests (R2, R5).
+- [x] T3. `museTopics` and the alert sentence from a template (R3, R4).
+- [x] T4. Card with **Seen** and **Not useful** (R4, R5). Notification later.
 - [ ] T5. Check criteria 1 to 5 with a seeded history.
 
 ## Open questions

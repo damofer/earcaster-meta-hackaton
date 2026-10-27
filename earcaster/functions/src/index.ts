@@ -6,7 +6,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { initializeApp } from "firebase-admin/app";
 import { getAuth } from "firebase-admin/auth";
-import { DocumentReference, FieldValue, Timestamp, getFirestore } from "firebase-admin/firestore";
+import { DocumentReference, FieldPath, FieldValue, Timestamp, getFirestore } from "firebase-admin/firestore";
 import { setGlobalOptions } from "firebase-functions/v2";
 import { Request, onRequest } from "firebase-functions/v2/https";
 import { defineSecret } from "firebase-functions/params";
@@ -18,6 +18,7 @@ import { EvenChunker, frame } from "./frames";
 import { askMuse } from "./muse";
 import { askSummary, dayLog } from "./summary";
 import { askBrief, weekLog } from "./brief";
+import { BASE_DAYS, DayTrend, RECENT_DAYS, Topic, askTopics, daysBefore, detect, isNight, sentence, trendKey } from "./changes";
 import { askUpdates, profileTexts, weeklyVisitsFrom, withoutNumbers } from "./updates";
 import { systemPrompt } from "./prompt";
 import { aiSettings } from "./settings";
@@ -474,7 +475,14 @@ export const responder = onRequest(
         at: FieldValue.serverTimestamp(),
         expireAt: Timestamp.fromMillis(Date.now() + TALKS_KEEP_MS),
       });
-      await Promise.all([voiceChain, log]);
+      // The day's counts per question, kept 30 days, to notice a change (spec 022). Not the conversations.
+      const trend = patient.collection("trends").doc(day).set({
+        questions: FieldValue.increment(1),
+        night: FieldValue.increment(isNight(body.hour) ? 1 : 0),
+        texts: { [trendKey(text)]: FieldValue.increment(1) },
+        expireAt: Timestamp.fromMillis(Date.now() + 30 * DAY_MS),
+      }, { merge: true }).catch((e) => logger.warn("Could not count the question", e));
+      await Promise.all([voiceChain, log, trend]);
       if (answer.action) res.write(frame("X", JSON.stringify(answer.action)));
       res.write(frame("E", JSON.stringify({ ok: true, voice: voiceOk })));
     } catch (e) {
@@ -744,6 +752,110 @@ export const briefNow = onRequest(
       res.json(out);
     } catch (e) {
       logger.error("Could not write the visit brief", e);
+      res.status(502).end();
+    }
+  },
+);
+
+/**
+ * Spec 022: changes worth telling the family, checked at most once a day when the caregiver opens Assistant. Muse
+ * Spark only groups the questions into topics; the rules and the sentences are in changes.ts. Replies the alerts
+ * the caregiver has not marked yet: [{id, kind, text, quotes}].
+ */
+export const changesNow = onRequest(
+  { secrets: [ENGINE_TOKEN], timeoutSeconds: 60 },
+  async (req, res) => {
+    if (req.method !== "POST") {
+      res.status(405).end();
+      return;
+    }
+    const who = await caller(req);
+    if (!who || who.anonymous) {
+      res.status(401).end();
+      return;
+    }
+    const body = (req.body || {}) as Record<string, unknown>;
+    const pid = str(body.pid, 64);
+    const day = typeof body.day === "string" && /^\d{4}-\d{2}-\d{2}$/.test(body.day) ? body.day : "";
+    // The phone's local midnights at the start of the 3 recent days and of the 14 before.
+    const recentFrom = typeof body.recentFrom === "number" ? body.recentFrom : 0;
+    const baseFrom = typeof body.baseFrom === "number" ? body.baseFrom : 0;
+    if (!pid || !day || !recentFrom || !baseFrom || baseFrom >= recentFrom) {
+      res.status(400).end();
+      return;
+    }
+    const patient = db.collection("patients").doc(pid);
+    const snap = await patient.get();
+    if (!snap.exists || snap.get("caregiverUid") !== who.uid) {
+      res.status(403).end();
+      return;
+    }
+    if (!snap.get("aiConsentAt")) {
+      res.status(403).end();
+      return;
+    }
+    const lang = langOf(req);
+    const alerts = patient.collection("alerts");
+    try {
+      const checked = await alerts.doc("_check").get();
+      if (checked.get("day") !== day) {
+        await alerts.doc("_check").set({ day, expireAt: Timestamp.fromMillis(Date.now() + 30 * DAY_MS) });
+        const first = daysBefore(day, RECENT_DAYS + BASE_DAYS - 1);
+        const [trendDocs, events, profileSnap] = await Promise.all([
+          patient.collection("trends").where(FieldPath.documentId(), ">=", first).where(FieldPath.documentId(), "<=", day).get(),
+          patient.collection("events").where("at", ">=", Timestamp.fromMillis(baseFrom)).get(),
+          patient.collection("private").doc("profile").get(),
+        ]);
+        const trends: DayTrend[] = trendDocs.docs.map((d) => ({
+          day: d.id,
+          questions: Number(d.get("questions")) || 0,
+          night: Number(d.get("night")) || 0,
+          texts: (d.get("texts") as Record<string, number>) || {},
+        }));
+        const helpAt = events.docs.map((d) => (d.get("at") instanceof Timestamp ? (d.get("at") as Timestamp).toMillis() : 0));
+        const helpRecent = helpAt.filter((t) => t >= recentFrom).length;
+        const helpBase = helpAt.filter((t) => t >= baseFrom && t < recentFrom).length;
+        // The most asked questions, grouped by Muse Spark; without it, each question is its own topic.
+        const totals = new Map<string, number>();
+        for (const t of trends) for (const [k, n] of Object.entries(t.texts)) totals.set(k, (totals.get(k) || 0) + n);
+        const texts = [...totals.entries()].sort((a, b) => b[1] - a[1]).slice(0, 300).map(([k]) => k);
+        let topics: Topic[] = texts.map((x) => ({ label: "", texts: [x] }));
+        if (texts.length) {
+          try {
+            topics = await askTopics(ENGINE_TOKEN.value().trim(), lang, texts);
+          } catch (e) {
+            logger.warn("Could not group the questions; each one counts alone", e);
+          }
+        }
+        const profile = profileFrom(profileSnap.data());
+        const person = profile.callMe?.trim() || profile.name?.trim() || "";
+        for (const c of detect(day, trends, topics, helpRecent, helpBase)) {
+          const ref = alerts.doc(`${c.kind}-${c.key.replace(/[^\p{L}\p{N}]+/gu, "-")}`.slice(0, 120));
+          const old = await ref.get();
+          const at = old.get("at") instanceof Timestamp ? (old.get("at") as Timestamp).toMillis() : 0;
+          const until = old.get("until") instanceof Timestamp ? (old.get("until") as Timestamp).toMillis() : 0;
+          // At most one alert of a kind every 7 days; "Not useful" silences it for 30 (R5).
+          if (Date.now() - at < 7 * DAY_MS || until > Date.now()) continue;
+          await ref.set({
+            kind: c.kind,
+            text: sentence(c, person, lang),
+            quotes: c.quotes,
+            at: FieldValue.serverTimestamp(),
+            seen: false,
+            notUseful: false,
+            until: null,
+            expireAt: Timestamp.fromMillis(Date.now() + 60 * DAY_MS),
+          });
+        }
+      }
+      const open = await alerts.where("seen", "==", false).where("notUseful", "==", false).get();
+      res.json({
+        alerts: open.docs
+          .filter((d) => d.get("at") instanceof Timestamp && Date.now() - (d.get("at") as Timestamp).toMillis() < 7 * DAY_MS)
+          .map((d) => ({ id: d.id, kind: d.get("kind"), text: d.get("text"), quotes: d.get("quotes") || [] })),
+      });
+    } catch (e) {
+      logger.error("Could not check for changes", e);
       res.status(502).end();
     }
   },

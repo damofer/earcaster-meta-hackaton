@@ -80,6 +80,18 @@ service cloud.firestore {
         allow read, delete: if isCaregiver(pid);
       }
 
+      // Change alerts (spec 022): the function writes the daily counts and the alerts; the caregiver
+      // only marks an alert as seen or not useful.
+      match /trends/{day} {
+        allow read, delete: if isCaregiver(pid);
+      }
+
+      match /alerts/{id} {
+        allow read, delete: if isCaregiver(pid);
+        allow update: if isCaregiver(pid)
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['seen', 'notUseful', 'until']);
+      }
+
       match /devices/{uid} {
         allow read, delete: if isCaregiver(pid) || (signedIn() && request.auth.uid == uid);
         allow update: if signedIn() && request.auth.uid == uid;

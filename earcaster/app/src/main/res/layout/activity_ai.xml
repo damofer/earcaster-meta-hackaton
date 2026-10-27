@@ -40,6 +40,13 @@
                 android:layout_marginTop="8dp"
                 android:textStyle="bold" />
 
+            <!-- Change alerts (spec 022) -->
+            <LinearLayout
+                android:id="@+id/ai_alerts"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" />
+
             <com.google.android.material.materialswitch.MaterialSwitch
                 android:id="@+id/ai_on"
                 android:layout_width="match_parent"

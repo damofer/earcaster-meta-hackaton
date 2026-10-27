@@ -241,7 +241,7 @@ final class Cloud {
 
     /** Deletes the patient with their recordings, doses, alerts and linked phones. */
     static void deletePatient(String pid, Done done) {
-        String[] subs = {"sounds", "doses", "events", "devices", "private", "talks", "usage", "summaries", "briefs"};
+        String[] subs = {"sounds", "doses", "events", "devices", "private", "talks", "usage", "summaries", "briefs", "trends", "alerts"};
         deleteCollections(pid, subs, 0, error -> {
             if (error != null) {
                 done.done(error);
@@ -435,6 +435,20 @@ final class Cloud {
 
     static void deleteProfile(String pid) {
         profile(pid).delete();
+    }
+
+    // --- Change alerts (spec 022) ---
+
+    /** The caregiver marks an alert: seen, or not useful (silences that topic for 30 days, R5). */
+    static void markAlert(String pid, String id, boolean useful) {
+        Map<String, Object> m = new HashMap<>();
+        if (useful) {
+            m.put("seen", true);
+        } else {
+            m.put("notUseful", true);
+            m.put("until", new Timestamp(new java.util.Date(System.currentTimeMillis() + 30L * 86_400_000L)));
+        }
+        patient(pid).collection("alerts").document(id).update(m);
     }
 
     // --- Recordings ---
