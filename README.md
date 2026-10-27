@@ -2,7 +2,7 @@
 
 Built for the **Meta Global AI Developer Hackathon** (October 26 to November 4, 2026) · Indie track · Theme: *Build for Your World*.
 
-My great-aunt has Alzheimer's. Every day she asks the same questions: what day is it, when is my family coming, did I take my pill. I built [Earcaster](https://earcaster.web.app), an Android app that listens offline and answers her in a calm voice, before this event. **This repository is the new part, built during the hackathon:** the AI that answers the questions nobody predicted, on Meta's models, with code-level guarantees that it never invents a visit, a time, a person or a dose.
+My great-aunt has Alzheimer's. Every day she asks the same questions: what day is it, when is my family coming, did I take my pill. I built [Earcaster](https://earcaster.web.app), an Android app that listens offline and answers her in a calm voice, the week before this event. **What I built during the hackathon** is the AI that answers the questions nobody predicted, on Meta's models, with code-level guarantees that it never invents a visit, a time, a person or a dose, and the changes that connect Earcaster to it.
 
 What existed before and what was built here is spelled out in [HACKATHON.md](HACKATHON.md).
 
@@ -10,6 +10,7 @@ What existed before and what was built here is spelled out in [HACKATHON.md](HAC
 
 | Part | What it does | Meta model | Status |
 | --- | --- | --- | --- |
+| [`earcaster/`](earcaster) | The Android app and its backend. **Pre-hackathon base** up to the tag `earcaster-pre-hackathon`; event changes come after it | Muse Spark 1.3, through `server/` | Base from Oct 24; event changes listed in HACKATHON.md |
 | [`server/`](server) | Answer engine: streams an answer from Muse Spark, checks every sentence before it is spoken, and turns tool calls into actions the caregiver allowed | Muse Spark 1.3 (Meta Model API) | Working, tested against a fake API; live test pending the API key |
 | [`demo/`](demo) | A web page to try the engine with a made-up person, no account needed; it shows which sentences the guard removed and what the phone would do | Muse Spark 1.3 | Built; goes live with the server deploy |
 
