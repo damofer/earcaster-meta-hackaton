@@ -117,14 +117,15 @@ export function summaryPrompt(d: Day, s: Stats): string {
 export async function summarize(d: Day, apiKey: string): Promise<{ text: string; stats: Stats; dropped: string[] }> {
   const stats = statsOf(d);
   let raw = "";
-  await streamMuse({
+  const end = await streamMuse({
     apiKey,
     messages: [
       { role: "developer", content: summaryPrompt(d, stats) },
       { role: "user", content: d.lang === "es" ? "Escribe el resumen de hoy." : "Write today's summary." },
     ],
     tools: [],
-    timeoutMs: 25_000,
+    timeoutMs: 40_000,
+    maxTokens: 6000,
     onText: (delta) => (raw += delta),
   });
   const { sentences, rest } = takeSentences(raw + "\n");
@@ -139,7 +140,7 @@ export async function summarize(d: Day, apiKey: string): Promise<{ text: string;
   };
   ctx.facts.doses = ctx.said;
   const kept: string[] = [];
-  const dropped: string[] = [];
+  const dropped: string[] = raw.trim() ? [] : [`no text (${end.finishReason || "no finish reason"})`];
   for (const s of all) {
     if (kept.length >= MAX_SUMMARY_SENTENCES) break;
     const v = check(s, ctx);

@@ -77,6 +77,7 @@ export async function groupTopics(lang: Lang, texts: string[], apiKey: string): 
     ],
     tools: [],
     timeoutMs: 30_000,
+    maxTokens: 6000,
     onText: (delta) => (raw += delta),
   });
   return checkTopics(jsonIn(raw), texts);

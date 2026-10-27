@@ -234,6 +234,7 @@ export async function proposeUpdates(r: Request, apiKey: string): Promise<Result
     ],
     tools: [],
     timeoutMs: 25_000,
+    maxTokens: 4000,
     onText: (delta) => (raw += delta),
   });
   const list = jsonIn(raw).proposals;

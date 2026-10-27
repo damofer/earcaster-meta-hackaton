@@ -121,14 +121,15 @@ export function briefPrompt(w: Week, s: WeekStats): string {
 export async function brief(w: Week, apiKey: string): Promise<{ text: string; stats: WeekStats; dropped: string[] }> {
   const stats = weekStatsOf(w);
   let raw = "";
-  await streamMuse({
+  const end = await streamMuse({
     apiKey,
     messages: [
       { role: "developer", content: briefPrompt(w, stats) },
       { role: "user", content: w.lang === "es" ? "Escribe el resumen para la visita." : "Write the visit brief." },
     ],
     tools: [],
-    timeoutMs: 25_000,
+    timeoutMs: 40_000,
+    maxTokens: 6000,
     onText: (delta) => (raw += delta),
   });
   const { sentences, rest } = takeSentences(raw + "\n");
@@ -141,7 +142,7 @@ export async function brief(w: Week, apiKey: string): Promise<{ text: string; st
     said,
   };
   const kept: string[] = [];
-  const dropped: string[] = [];
+  const dropped: string[] = raw.trim() ? [] : [`no text (${end.finishReason || "no finish reason"})`];
   for (const s of [...sentences, rest.trim()].filter(Boolean)) {
     if (kept.length >= MAX_BRIEF_SENTENCES) break;
     if (TESTING_MEMORY.es.test(plain(s)) || TESTING_MEMORY.en.test(plain(s))) {

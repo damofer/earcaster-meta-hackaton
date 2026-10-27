@@ -19,6 +19,8 @@ export interface MuseRequest {
   tools: Tool[];
   onText: (delta: string) => void;
   timeoutMs: number;
+  /** Reasoning counts toward this limit. Longer inputs (a day or a week of conversations) need more. */
+  maxTokens?: number;
 }
 
 /** Streams one answer from Muse Spark. Text arrives through onText; tool calls come back at the end. */
@@ -41,7 +43,7 @@ export async function streamMuse(r: MuseRequest): Promise<StreamResult> {
         // Muse Spark always reasons; low keeps the first spoken words close to a second.
         reasoning_effort: "low",
         // Reasoning counts toward this limit; the answer itself is at most two sentences.
-        max_completion_tokens: 1500,
+        max_completion_tokens: r.maxTokens ?? 1500,
         ...(r.tools.length ? { tools: r.tools, tool_choice: "auto" } : {}),
       }),
     });
