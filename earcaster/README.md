@@ -71,7 +71,7 @@ Con **Ficha** cuentas quién es la persona y qué puede hacer la IA sin pregunta
 - `Profile.java`, `ProfileActivity.java`: la ficha del paciente para la IA, las acciones permitidas y la vista previa.
 - `AiText.java`, `AiClient.java`, `AiActivity.java`: cuándo lo que se oye es para la IA, la respuesta con voz que suena mientras llega y los ajustes del asistente.
 - `Lang.java`, `LangPicker.java`, `res/values-en/`: el idioma de la app (español o inglés) y sus textos en inglés.
-- `functions/`: la función de Firebase que llama a Claude o a Muse Spark de Meta, según el modelo que elija el cuidador, y a ElevenLabs (las claves viven ahí, nunca en la app). Se despliega con el flujo `Función de IA` de GitHub Actions.
+- `functions/`: la función de Firebase que llama a Claude o, si el cuidador elige Meta, al motor `earcaster-muse` del repositorio público [earcaster-meta-hackaton](https://github.com/damofer/earcaster-meta-hackaton), y a ElevenLabs (las claves viven ahí, nunca en la app). Se despliega con el flujo `Función de IA` de GitHub Actions.
 
 ## Página web
 La landing está en `web/index.html` y se publica en https://earcaster.web.app junto con el último APK (`/Earcaster.apk`). Está en español e inglés: muestra el idioma del navegador (español si el navegador está en español, inglés si no), tiene un selector ES/EN arriba y `?lang=en` o `?lang=es` abre un idioma concreto. Las capturas están en `web/img/`.

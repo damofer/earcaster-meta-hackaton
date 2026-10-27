@@ -74,7 +74,7 @@ jobs:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
           CLAUDE_MODEL: ${{ secrets.CLAUDE_MODEL }}
-          META_API_KEY: ${{ secrets.META_API_KEY }}
+          ENGINE_TOKEN: ${{ secrets.ENGINE_TOKEN }}
         run: node .github/deploy_check.js
 
       - name: Desplegar

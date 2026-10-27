@@ -5,7 +5,7 @@ const path = require("path");
 const { GoogleAuth } = require(require.resolve("google-auth-library", { paths: [path.join(__dirname, "..", "functions")] }));
 
 const PROJECT = "earcaster";
-const SECRETS = ["ANTHROPIC_API_KEY", "ELEVENLABS_API_KEY", "CLAUDE_MODEL", "META_API_KEY"];
+const SECRETS = ["ANTHROPIC_API_KEY", "ELEVENLABS_API_KEY", "CLAUDE_MODEL", "ENGINE_TOKEN"];
 // Permission used by the deploy → role that grants it
 const NEEDED = {
   "serviceusage.services.get": "Editor",

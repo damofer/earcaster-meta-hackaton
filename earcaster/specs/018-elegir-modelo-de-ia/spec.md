@@ -30,16 +30,16 @@ La conversación con IA (017) solo usaba Claude. Para la hackatón de Meta, y pa
 
 ## Plan
 
-- **Servidor:** la API de Meta acepta el mismo formato de mensajes que Anthropic (`https://api.meta.ai/v1/messages`), así que el mismo SDK habla con las dos. Con Meta, la clave va como token Bearer y el SDK no toma `ANTHROPIC_API_KEY`, para no mandarla a Meta. Meta no documenta `output_config.effort`, así que solo se manda a Claude.
+- **Servidor:** con Meta, la función no llama a Meta directamente: llama a `earcaster-muse`, el motor construido durante la hackatón en el repositorio público [damofer/earcaster-meta-hackaton](https://github.com/damofer/earcaster-meta-hackaton) y desplegado como una función aparte en este mismo proyecto de Firebase. El motor recibe solo texto y nombres, nunca números de teléfono; la acción que devuelve vuelve a pasar por `resolve()`, que toma el número de la ficha. Las frases que llegan se revisan otra vez con `checkSentence`.
 - **Datos:** `ai_model` (`"claude"` o `"meta"`) en el JSON de ajustes del paciente; cualquier otro valor cuenta como Claude.
-- **Secretos:** `META_API_KEY` en Secret Manager; el despliegue revisa que exista.
+- **Secretos:** `ENGINE_TOKEN` en Secret Manager, compartido con el motor; `META_API_KEY` solo lo usa el motor. El despliegue revisa que `ENGINE_TOKEN` exista.
 - **App:** dos botones en `AiActivity` y `Prefs.AI_MODEL` en los ajustes que viajan.
 
 ## Tareas
 
 - [x] T1. `ai_model` en los ajustes de la función, con pruebas (R1).
-- [x] T2. Cliente de Meta con el mismo prompt, herramientas y revisión de frases (R2, R3, R5).
-- [x] T3. `META_API_KEY` en la revisión del despliegue y dos preguntas con Meta en la prueba de la función desplegada.
+- [x] T2. Llamada al motor `earcaster-muse` con las acciones permitidas sin números, y revisión de frases también aquí (R2, R3, R5).
+- [x] T3. `ENGINE_TOKEN` en la revisión del despliegue y dos preguntas con Meta en la prueba de la función desplegada.
 - [x] T4. Selector en **Asistente**, aviso al pasar a Meta y aviso de datos con las dos empresas (R1, R4).
 - [ ] T5. Comprobar los criterios 1 a 5 con la clave de Meta y en un teléfono.
 

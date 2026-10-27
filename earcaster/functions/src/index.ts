@@ -1,5 +1,6 @@
 /**
- * Earcaster's AI conversation (spec 017). Claude or Meta's Muse Spark answers (spec 018) and ElevenLabs provides the voice; the keys
+ * Earcaster's AI conversation (spec 017). Claude, or Meta's Muse Spark through the earcaster-muse engine (spec 018),
+ * answers and ElevenLabs provides the voice; the keys
  * live here, in Secret Manager, never in the app. Only text arrives from the phone: audio never leaves it.
  */
 import Anthropic from "@anthropic-ai/sdk";
@@ -14,20 +15,18 @@ import type { Response } from "express";
 
 import { resolve, tools } from "./actions";
 import { EvenChunker, frame } from "./frames";
+import { askMuse } from "./muse";
 import { systemPrompt } from "./prompt";
 import { aiSettings } from "./settings";
 import { MAX_SENTENCES, checkSentence, takeSentences } from "./speech";
-import { Action, AiModel, Facts, Lang, Profile, Turn, langFrom } from "./types";
+import { Action, Facts, Lang, Profile, Turn, langFrom } from "./types";
 
 const ANTHROPIC_API_KEY = defineSecret("ANTHROPIC_API_KEY");
 const ELEVENLABS_API_KEY = defineSecret("ELEVENLABS_API_KEY");
 /** The Claude model is a secret so it can be changed without releasing the app or the code. */
 const CLAUDE_MODEL = defineSecret("CLAUDE_MODEL");
-const META_API_KEY = defineSecret("META_API_KEY");
-/** Meta's Model API speaks the same Messages format as Anthropic, so the same SDK talks to it (spec 018). */
-const META_BASE_URL = "https://api.meta.ai";
-/** The fast Muse Spark. Not the Contributor tier: Meta trains on its inputs, and these carry health data. */
-const META_MODEL = "muse-spark-1.3";
+/** Shared with the earcaster-muse engine, which answers when the caregiver picks Meta (spec 018). */
+const ENGINE_TOKEN = defineSecret("ENGINE_TOKEN");
 
 /** Next to Firestore (nam5). */
 setGlobalOptions({ region: "us-central1", maxInstances: 10 });
@@ -273,18 +272,7 @@ interface Answer {
 }
 
 /**
- * The client for the chosen model. Meta's key goes as a Bearer token; apiKey is null so the SDK does not add
- * ANTHROPIC_API_KEY (which the runtime also exposes as an environment variable) and send it to Meta.
- */
-function client(model: AiModel): Anthropic {
-  if (model === "meta") {
-    return new Anthropic({ apiKey: null, authToken: META_API_KEY.value().trim(), baseURL: META_BASE_URL });
-  }
-  return new Anthropic({ apiKey: ANTHROPIC_API_KEY.value().trim() });
-}
-
-/**
- * Asks Claude for the reply and delivers each checked sentence as soon as it is complete (onSentence),
+ * Asks the chosen model for the reply and delivers each checked sentence as soon as it is complete (onSentence),
  * without waiting for the rest. At most two sentences; the action, only if it is allowed.
  */
 async function ask(
@@ -297,17 +285,7 @@ async function ask(
   lang: Lang,
   onSentence: (s: string) => void,
 ): Promise<Answer> {
-  const toolList = tools(profile, doseNames, lang);
-  const system = systemPrompt(settings, profile, facts, toolList.some((t) => t.name === "avisar_ayuda"), lang);
-  const messages: Anthropic.MessageParam[] = [];
-  for (const t of history) {
-    messages.push({ role: "user", content: t.q }, { role: "assistant", content: t.a });
-  }
-  messages.push({ role: "user", content: text });
-
-  const anthropic = client(settings.model);
   const sentences: string[] = [];
-  let buffer = "";
   const emit = (list: string[]) => {
     for (const raw of list) {
       if (sentences.length >= MAX_SENTENCES) return;
@@ -317,13 +295,29 @@ async function ask(
       onSentence(s);
     }
   };
+  if (settings.model === "meta") {
+    // The engine checks every sentence too; checking here again keeps one rule for both models.
+    const action = await askMuse(ENGINE_TOKEN.value().trim(), settings, profile, facts, history, text, doseNames, lang,
+      (s) => emit([s]));
+    return { sentences, action };
+  }
+
+  const toolList = tools(profile, doseNames, lang);
+  const system = systemPrompt(settings, profile, facts, toolList.some((t) => t.name === "avisar_ayuda"), lang);
+  const messages: Anthropic.MessageParam[] = [];
+  for (const t of history) {
+    messages.push({ role: "user", content: t.q }, { role: "assistant", content: t.a });
+  }
+  messages.push({ role: "user", content: text });
+
+  const anthropic = new Anthropic({ apiKey: ANTHROPIC_API_KEY.value().trim() });
+  let buffer = "";
   const stream = anthropic.messages.stream({
-    model: settings.model === "meta" ? META_MODEL : CLAUDE_MODEL.value().trim(),
+    model: CLAUDE_MODEL.value().trim(),
     // The model may think before answering, and its thinking counts toward max_tokens: with 300 it sometimes
     // ran out mid-sentence. With low effort it thinks little or not at all, and the margin is more than enough.
     max_tokens: 2000,
-    // Only Claude gets the effort setting: Meta's Messages API does not document it.
-    ...(settings.model === "meta" ? {} : { output_config: { effort: "low" as const } }),
+    output_config: { effort: "low" },
     system,
     messages,
     ...(toolList.length ? { tools: toolList as Anthropic.Tool[] } : {}),
@@ -399,7 +393,7 @@ async function countAnswer(patient: DocumentReference, day: string, max: number)
  */
 export const responder = onRequest(
   {
-    secrets: [ANTHROPIC_API_KEY, ELEVENLABS_API_KEY, CLAUDE_MODEL, META_API_KEY],
+    secrets: [ANTHROPIC_API_KEY, ELEVENLABS_API_KEY, CLAUDE_MODEL, ENGINE_TOKEN],
     minInstances: 1,
     concurrency: 40,
     timeoutSeconds: 30,
@@ -491,7 +485,7 @@ export const responder = onRequest(
 
 /** The profile preview (016 R3): the same reply, without voice and without executing anything. */
 export const preview = onRequest(
-  { secrets: [ANTHROPIC_API_KEY, CLAUDE_MODEL, META_API_KEY], timeoutSeconds: 30 },
+  { secrets: [ANTHROPIC_API_KEY, CLAUDE_MODEL, ENGINE_TOKEN], timeoutSeconds: 30 },
   async (req, res) => {
     if (req.method !== "POST") {
       res.status(405).end();
