@@ -21,6 +21,7 @@ import { MUSE_MODEL } from "./muse";
 import { questionFrom } from "./request";
 import { dayFrom, summarize } from "./summary";
 import { Question, langFrom } from "./types";
+import { proposeUpdates, requestFrom } from "./updates";
 
 const META_API_KEY = defineSecret("META_API_KEY");
 /** Shared with Earcaster's own function, the only caller. */
@@ -125,6 +126,35 @@ export const museSummary = onRequest(
       res.json({ ...(await summarize(day, META_API_KEY.value().trim())), model: MUSE_MODEL });
     } catch (e) {
       logger.error("Muse Spark could not write the summary", e);
+      res.status(502).end();
+    }
+  },
+);
+
+/**
+ * Spec 020: proposes profile and visit changes from a family message. Saves nothing; the caregiver approves each
+ * proposal on the phone. POST with `Authorization: Bearer <ENGINE_TOKEN>`; replies {proposals, medication, dropped}.
+ */
+export const museUpdates = onRequest(
+  { secrets: [META_API_KEY, ENGINE_TOKEN], timeoutSeconds: 40, memory: "256MiB" },
+  async (req, res) => {
+    if (req.method !== "POST") {
+      res.status(405).end();
+      return;
+    }
+    if (!authorized(req.get("authorization"), ENGINE_TOKEN.value().trim())) {
+      res.status(401).end();
+      return;
+    }
+    const r = requestFrom(req.body);
+    if (!r) {
+      res.status(400).end();
+      return;
+    }
+    try {
+      res.json({ ...(await proposeUpdates(r, META_API_KEY.value().trim())), model: MUSE_MODEL });
+    } catch (e) {
+      logger.error("Muse Spark could not read the message", e);
       res.status(502).end();
     }
   },

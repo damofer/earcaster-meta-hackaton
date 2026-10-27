@@ -14,7 +14,7 @@ export const SAFE = { es: "Eso no lo tengo apuntado.", en: "I don't have that wr
 
 export type Verdict = { ok: true; text: string } | { ok: false; replacement: string | null; reason: string };
 
-function plain(s: string): string {
+export function plain(s: string): string {
   return s.toLowerCase().normalize("NFD").replace(/\p{M}+/gu, "").replace(/[’]/g, "'");
 }
 
@@ -40,7 +40,7 @@ const HOUR_PATTERNS = {
   en: /\bat (\d{1,2}|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve)\b|\b(\d{1,2}):\d{2}\b|\b(\d{1,2}|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve) ?(o'clock|am|pm|a\.m\.|p\.m\.)/g,
 };
 
-function hoursIn(text: string, lang: Lang): Set<number> {
+export function hoursIn(text: string, lang: Lang): Set<number> {
   const out = new Set<number>();
   for (const re of [HOUR_PATTERNS.es, HOUR_PATTERNS.en]) {
     for (const m of plain(text).matchAll(re)) {
@@ -55,7 +55,7 @@ function hoursIn(text: string, lang: Lang): Set<number> {
 }
 
 /** Calendar dates as "20 de octubre" or "October 20" / "20 October". */
-function datesIn(text: string): Set<string> {
+export function datesIn(text: string): Set<string> {
   const out = new Set<string>();
   const s = plain(text);
   for (const lang of ["es", "en"] as const) {
@@ -69,7 +69,7 @@ function datesIn(text: string): Set<string> {
 }
 
 /** Capitalized words that are not the first word of the sentence: names of people and places. */
-function namesIn(sentence: string): string[] {
+export function namesIn(sentence: string): string[] {
   const words = sentence.split(/\s+/).map((w) => w.replace(/^[¿¡"«(]+|[.,;:!?…"»)]+$/g, ""));
   const out: string[] = [];
   words.forEach((w, i) => {

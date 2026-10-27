@@ -24,4 +24,7 @@ Everything outside `earcaster/`, and every change to `earcaster/` after the tag,
 | Oct 27 | Earcaster: a setting for the caregiver to choose Claude or Meta per patient, with a notice before data goes to Meta (`earcaster/`, spec 018) |
 | Oct 27 | Earcaster's backend calls this engine when Meta is chosen, sending names but never phone numbers (`earcaster/functions/src/muse.ts`) |
 | Oct 27 | Public demo: `museDemo` endpoint with a made-up person and a daily budget, and a bilingual web page that streams the answer, reads it aloud with the browser's voice and shows what the guard removed |
+| Oct 27 | Caregiver's daily summary written by Muse Spark: counts made in code, every sentence through the guard (`museSummary`, and in Earcaster the Assistant screen's "Today's summary", spec 019) |
+| Oct 27 | Specs 020 to 022 (family updates, visit brief, change alert) and a draft of 023 (scam shield), in English |
+| Oct 27 | Family updates engine (`museUpdates`, spec 020): a family message becomes visit or profile proposals, each traced to the message in code; medication messages never reach the model; phone numbers removed |
 
