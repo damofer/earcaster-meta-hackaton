@@ -11,7 +11,7 @@ What existed before and what was built here is spelled out in [HACKATHON.md](HAC
 | Part | What it does | Meta model | Status |
 | --- | --- | --- | --- |
 | [`server/`](server) | Answer engine: streams an answer from Muse Spark, checks every sentence before it is spoken, and turns tool calls into actions the caregiver allowed | Muse Spark 1.3 (Meta Model API) | Working, tested against a fake API; live test pending the API key |
-| `demo/` | A small app to try the engine without Earcaster | | Next |
+| [`demo/`](demo) | A web page to try the engine with a made-up person, no account needed; it shows which sentences the guard removed and what the phone would do | Muse Spark 1.3 | Built; goes live with the server deploy |
 
 ## How an answer is made safe
 
@@ -24,6 +24,10 @@ A person with dementia cannot tell a made-up visit from a real one, so the rules
 A sentence that breaks 2 or 3 is replaced by "I don't have that written down", and nothing after it is said. Answers are capped at two sentences, so the voice can start speaking while the rest arrives.
 
 Privacy: only text reaches the engine (audio never leaves the phone), and phone numbers never reach Meta. The model only sees names; the caller maps a name back to its number.
+
+## Try it
+
+The demo page will be at https://damofer.github.io/earcaster-meta-hackaton/ once the server is deployed. It talks to `museDemo`, the same engine with a sample person, a daily budget and no real actions.
 
 ## Running the server tests
 

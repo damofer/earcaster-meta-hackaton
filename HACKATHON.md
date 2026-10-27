@@ -19,5 +19,6 @@ Everything in this repository was written during the event. The commit history i
 | Date | What |
 | --- | --- |
 | Oct 27 | Answer engine on Muse Spark 1.3: streaming chat completions client, tool calling restricted to caregiver-allowed actions, per-sentence guard (medication, weekdays, hours, dates, names), tests against a fake Meta API |
+| Oct 27 | Public demo: `museDemo` endpoint with a made-up person and a daily budget, and a bilingual web page that streams the answer, reads it aloud with the browser's voice and shows what the guard removed |
 
 Outside this repository, also during the event: Earcaster got a setting for the caregiver to choose between Claude and Meta. With Meta, Earcaster's backend calls this engine, sending names but never phone numbers.

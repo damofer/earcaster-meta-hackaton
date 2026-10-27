@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Earcaster × Muse Spark demo</title>
+<style>
+  :root {
+    --bg: #f6f4ef; --card: #ffffff; --text: #1f2328; --muted: #5d6470; --line: #e3dfd6;
+    --accent: #2f6f5e; --accent-soft: #e3f0ec; --warn: #9a4a12; --warn-soft: #fbeee2;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #15181c; --card: #1e2227; --text: #e8eaed; --muted: #a0a7b1; --line: #2e333a;
+      --accent: #7cc4ad; --accent-soft: #1f332d; --warn: #f0a868; --warn-soft: #3a2a1c; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 17px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  main { max-width: 980px; margin: 0 auto; padding: 24px 16px 48px; }
+  header { display: flex; justify-content: space-between; align-items: start; gap: 16px; flex-wrap: wrap; }
+  h1 { font-size: 28px; margin: 0 0 4px; }
+  .sub { color: var(--muted); margin: 0; max-width: 60ch; }
+  .lang button { font: inherit; border: 1px solid var(--line); background: var(--card); color: var(--text); padding: 6px 12px; border-radius: 8px; cursor: pointer; }
+  .lang button[aria-pressed="true"] { background: var(--accent); color: var(--card); border-color: var(--accent); }
+  .grid { display: grid; grid-template-columns: 1fr 1.3fr; gap: 20px; margin-top: 24px; }
+  @media (max-width: 760px) { .grid { grid-template-columns: 1fr; } }
+  section { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 18px; }
+  h2 { font-size: 15px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 0 0 10px; }
+  dl { margin: 0; } dt { font-weight: 600; margin-top: 10px; font-size: 15px; } dd { margin: 2px 0 0; color: var(--muted); font-size: 15px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 4px 0 14px; }
+  .chips button { font: inherit; font-size: 15px; border: 1px solid var(--line); background: var(--bg); color: var(--text); padding: 6px 12px; border-radius: 999px; cursor: pointer; }
+  form { display: flex; gap: 8px; }
+  input { flex: 1; min-width: 0; font: inherit; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--bg); color: var(--text); }
+  form button { font: inherit; padding: 10px 16px; border: 0; border-radius: 10px; background: var(--accent); color: var(--card); cursor: pointer; }
+  form button:disabled { opacity: .5; cursor: default; }
+  #log { margin-top: 16px; display: flex; flex-direction: column; gap: 10px; min-height: 120px; }
+  .q { align-self: flex-end; background: var(--bg); border: 1px solid var(--line); padding: 8px 12px; border-radius: 12px 12px 2px 12px; max-width: 85%; }
+  .a { align-self: flex-start; background: var(--accent-soft); padding: 8px 12px; border-radius: 12px 12px 12px 2px; max-width: 85%; }
+  .note { align-self: flex-start; font-size: 14px; padding: 6px 10px; border-radius: 8px; background: var(--warn-soft); color: var(--warn); }
+  .act { align-self: flex-start; font-size: 14px; padding: 6px 10px; border-radius: 8px; border: 1px dashed var(--accent); color: var(--accent); }
+  .meta { font-size: 13px; color: var(--muted); align-self: flex-start; }
+  footer { margin-top: 24px; color: var(--muted); font-size: 14px; }
+  a { color: var(--accent); }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <div>
+      <h1 data-i18n="title"></h1>
+      <p class="sub" data-i18n="sub"></p>
+    </div>
+    <div class="lang" role="group" aria-label="Language">
+      <button type="button" data-lang="es">ES</button>
+      <button type="button" data-lang="en">EN</button>
+    </div>
+  </header>
+
+  <div class="grid">
+    <section>
+      <h2 data-i18n="profileTitle"></h2>
+      <dl id="profile"></dl>
+    </section>
+    <section>
+      <h2 data-i18n="tryTitle"></h2>
+      <div class="chips" id="chips"></div>
+      <form id="ask">
+        <input id="text" maxlength="200" autocomplete="off">
+        <button id="send" type="submit" data-i18n="send"></button>
+      </form>
+      <div id="log" aria-live="polite"></div>
+    </section>
+  </div>
+
+  <footer data-i18n-html="footer"></footer>
+</main>
+<script>
+const API = "https://us-central1-earcaster.cloudfunctions.net/museDemo";
+/** "weekday martes" → "a day that is not in the facts (martes)". */
+function why(reason, text) {
+  const [kind, ...rest] = reason.split(" ");
+  const detail = rest.join(" ");
+  return (text[kind] || reason) + (detail && kind !== "date" ? ` (${detail})` : "");
+}
+const T = {
+  es: {
+    title: "Clara, con Muse Spark de Meta",
+    sub: "Una persona con Alzheimer pregunta lo mismo muchas veces. Clara responde con calma, y un control en el código revisa cada frase antes de que suene: nunca inventa una visita, una hora, una persona ni una toma.",
+    profileTitle: "Rosa (persona de ejemplo)",
+    tryTitle: "Pregúntale a Clara",
+    send: "Preguntar",
+    placeholder: "Escribe como hablaría Rosa…",
+    chips: ["¿Qué día es hoy?", "¿Cuándo viene Lucía?", "¿Viene Andrés hoy?", "¿Ya me tomé la pastilla?", "¿Dónde está Jorge?", "Llama a mi hijo", "Me caí y me duele la pierna"],
+    profile: [["Cómo le gusta que la llamen", "Rosita"], ["Familia", "Su hija Lucía la visita los domingos. Su hijo Andrés vive en Bogotá y la llama los viernes."], ["Tema delicado", "Su esposo Jorge murió hace años: se responde con cariño, sin decirlo de golpe."], ["Lo que sabe el teléfono ahora", "La hora en Colombia, la visita de Lucía el próximo domingo a las 5 de la tarde y la pastilla de la mañana, anotada a las 9 y 10."], ["Lo que puede hacer", "Llamar a Andrés o a Lucía, la linterna, anotar la pastilla de la noche y avisar a la familia."]],
+    dropped: (r) => `El control quitó una frase: ${why(r, {
+      medication: "le decía que tomara un medicamento", weekday: "un día que no está en los datos", hour: "una hora que no está en los datos",
+      date: "una fecha que no está en los datos", name: "un nombre que no está en la ficha" })}.`,
+    action: { call: (n) => `El teléfono llamaría a ${n}.`, light: (on) => on ? "El teléfono encendería la linterna." : "El teléfono apagaría la linterna.", dose: (n) => `El teléfono anotaría: ${n}.`, help: "El teléfono avisaría a la familia (y daría 10 segundos para cancelar)." },
+    timing: (f, t) => `Muse Spark 1.3 · primera frase en ${(f / 1000).toFixed(1)} s · total ${(t / 1000).toFixed(1)} s`,
+    failed: "No se pudo responder. En el teléfono sonaría la frase de reserva: «No te entendí bien, ¿me lo dices de otra forma?»",
+    limit: "La demo llegó a su límite de hoy. Vuelve mañana.",
+    footer: "Todo lo que ves es de ejemplo: Rosa no existe. La voz es la del navegador. Código: <a href=\"https://github.com/damofer/earcaster-meta-hackaton\">github.com/damofer/earcaster-meta-hackaton</a>. Earcaster no es un dispositivo médico ni un servicio de emergencias.",
+  },
+  en: {
+    title: "Grace, powered by Meta's Muse Spark",
+    sub: "A person with Alzheimer's asks the same things many times. Grace answers calmly, and a guard in code checks every sentence before it is spoken: it never makes up a visit, a time, a person or a dose.",
+    profileTitle: "Rose (sample person)",
+    tryTitle: "Ask Grace",
+    send: "Ask",
+    placeholder: "Type the way Rose would speak…",
+    chips: ["What day is it?", "When is Lucía coming?", "Is Andrés coming today?", "Did I take my pill?", "Where is Jorge?", "Call my son", "I fell and my leg hurts"],
+    profile: [["What she likes to be called", "Rosie"], ["Family", "Her daughter Lucía visits on Sundays. Her son Andrés lives in Bogotá and calls on Fridays."], ["Sensitive topic", "Her husband Jorge died years ago: answer kindly, without saying it bluntly."], ["What the phone knows now", "The time in Colombia, Lucía's visit next Sunday at 5 in the afternoon, and the morning pill, logged at 9:10."], ["What it may do", "Call Andrés or Lucía, the flashlight, log the evening pill and alert the family."]],
+    dropped: (r) => `The guard removed a sentence: ${why(r, {
+      medication: "it told her to take a medication", weekday: "a day that is not in the facts", hour: "a time that is not in the facts",
+      date: "a date that is not in the facts", name: "a name that is not in the profile" })}.`,
+    action: { call: (n) => `The phone would call ${n}.`, light: (on) => on ? "The phone would turn on the flashlight." : "The phone would turn off the flashlight.", dose: (n) => `The phone would log: ${n}.`, help: "The phone would alert the family (with 10 seconds to cancel)." },
+    timing: (f, t) => `Muse Spark 1.3 · first sentence in ${(f / 1000).toFixed(1)} s · total ${(t / 1000).toFixed(1)} s`,
+    failed: "It could not answer. On the phone, the fallback phrase would play: \"I did not quite understand you, could you say it another way?\"",
+    limit: "The demo reached its limit for today. Please come back tomorrow.",
+    footer: "Everything here is a sample: Rose does not exist. The voice is your browser's. Code: <a href=\"https://github.com/damofer/earcaster-meta-hackaton\">github.com/damofer/earcaster-meta-hackaton</a>. Earcaster is not a medical device or an emergency service.",
+  },
+};
+
+let lang = (navigator.language || "en").startsWith("es") ? "es" : "en";
+const q = new URLSearchParams(location.search).get("lang");
+if (q === "es" || q === "en") lang = q;
+const $ = (id) => document.getElementById(id);
+
+function render() {
+  const t = T[lang];
+  document.documentElement.lang = lang;
+  document.querySelectorAll("[data-i18n]").forEach((el) => (el.textContent = t[el.dataset.i18n]));
+  document.querySelectorAll("[data-i18n-html]").forEach((el) => (el.innerHTML = t[el.dataset.i18nHtml]));
+  document.querySelectorAll("[data-lang]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.lang === lang)));
+  $("text").placeholder = t.placeholder;
+  $("profile").replaceChildren(...t.profile.flatMap(([k, v]) => {
+    const dt = document.createElement("dt"); dt.textContent = k;
+    const dd = document.createElement("dd"); dd.textContent = v;
+    return [dt, dd];
+  }));
+  $("chips").replaceChildren(...t.chips.map((c) => {
+    const b = document.createElement("button"); b.type = "button"; b.textContent = c;
+    b.onclick = () => { $("text").value = c; ask(c); };
+    return b;
+  }));
+  $("log").replaceChildren();
+}
+
+function add(cls, text) {
+  const d = document.createElement("div"); d.className = cls; d.textContent = text;
+  $("log").append(d); d.scrollIntoView({ block: "nearest" });
+}
+
+function speak(text) {
+  if (!("speechSynthesis" in window)) return;
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = lang === "es" ? "es-CO" : "en-US"; u.rate = 0.95;
+  speechSynthesis.speak(u);
+}
+
+async function ask(text) {
+  text = text.trim();
+  if (!text) return;
+  const t = T[lang];
+  $("send").disabled = true;
+  add("q", text);
+  $("text").value = "";
+  try {
+    const res = await fetch(API, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text, lang }) });
+    if (res.status === 429) { add("note", t.limit); return; }
+    if (!res.ok || !res.body) throw new Error(String(res.status));
+    const reader = res.body.getReader();
+    const dec = new TextDecoder();
+    let buf = "", ok = false;
+    const handle = (line) => {
+      if (!line.trim()) return;
+      const e = JSON.parse(line);
+      if (e.t === "say") { add("a", e.text); speak(e.text); }
+      else if (e.t === "dropped") add("note", t.dropped(e.reason));
+      else if (e.t === "do") {
+        const a = e.action;
+        add("act", a.type === "call" ? t.action.call(a.name) : a.type === "light" ? t.action.light(a.on) : a.type === "dose" ? t.action.dose(a.name) : t.action.help);
+      } else if (e.t === "end") { ok = e.ok; if (e.ok) add("meta", t.timing(e.firstMs || e.totalMs, e.totalMs)); }
+    };
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buf += dec.decode(value, { stream: true });
+      let i;
+      while ((i = buf.indexOf("\n")) >= 0) { handle(buf.slice(0, i)); buf = buf.slice(i + 1); }
+    }
+    handle(buf);
+    if (!ok) add("note", t.failed);
+  } catch {
+    add("note", t.failed);
+  } finally {
+    $("send").disabled = false;
+  }
+}
+
+document.querySelectorAll("[data-lang]").forEach((b) => (b.onclick = () => { lang = b.dataset.lang; render(); }));
+$("ask").onsubmit = (e) => { e.preventDefault(); ask($("text").value); };
+render();
+</script>
+</body>
+</html>

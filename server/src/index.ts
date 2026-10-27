@@ -13,9 +13,13 @@ import { onRequest } from "firebase-functions/v2/https";
 import { defineSecret } from "firebase-functions/params";
 import * as logger from "firebase-functions/logger";
 
+import type { Response } from "express";
+
+import { Budget, demoQuestion } from "./demo";
 import { answer } from "./engine";
 import { MUSE_MODEL } from "./muse";
 import { questionFrom } from "./request";
+import { Question, langFrom } from "./types";
 
 const META_API_KEY = defineSecret("META_API_KEY");
 /** Shared with Earcaster's own function, the only caller. */
@@ -45,21 +49,53 @@ export const muse = onRequest(
       res.status(400).end();
       return;
     }
-    res.status(200);
-    res.setHeader("Content-Type", "application/x-ndjson");
-    res.setHeader("Cache-Control", "no-store");
-    const started = Date.now();
-    let first = 0;
-    try {
-      await answer(q, META_API_KEY.value().trim(), (e) => {
-        if (e.t === "say" && !first) first = Date.now() - started;
-        res.write(JSON.stringify(e) + "\n");
-      });
-      res.write(JSON.stringify({ t: "end", ok: true, model: MUSE_MODEL, firstMs: first, totalMs: Date.now() - started }) + "\n");
-    } catch (e) {
-      logger.error("Muse Spark could not answer", e);
-      res.write(JSON.stringify({ t: "end", ok: false }) + "\n");
+    await stream(q, META_API_KEY.value().trim(), res);
+  },
+);
+
+/** Writes the answer as NDJSON, one event per line as soon as it is ready. */
+async function stream(q: Question, apiKey: string, res: Response): Promise<void> {
+  res.status(200);
+  res.setHeader("Content-Type", "application/x-ndjson");
+  res.setHeader("Cache-Control", "no-store");
+  const started = Date.now();
+  let first = 0;
+  try {
+    await answer(q, apiKey, (e) => {
+      if (e.t === "say" && !first) first = Date.now() - started;
+      res.write(JSON.stringify(e) + "\n");
+    });
+    res.write(JSON.stringify({ t: "end", ok: true, model: MUSE_MODEL, firstMs: first, totalMs: Date.now() - started }) + "\n");
+  } catch (e) {
+    logger.error("Muse Spark could not answer", e);
+    res.write(JSON.stringify({ t: "end", ok: false }) + "\n");
+  }
+  res.end();
+}
+
+const demoBudget = new Budget(300, 25);
+
+/**
+ * The public demo for the judges: the same engine with a made-up person (demo.ts). Open to any page, limited to
+ * two instances and a daily budget, and it never runs an action: the page only shows what the phone would do.
+ */
+export const museDemo = onRequest(
+  { secrets: [META_API_KEY], timeoutSeconds: 30, memory: "256MiB", maxInstances: 2, cors: true },
+  async (req, res) => {
+    if (req.method !== "POST") {
+      res.status(405).end();
+      return;
     }
-    res.end();
+    const body = (req.body || {}) as Record<string, unknown>;
+    const text = typeof body.text === "string" ? body.text.trim().slice(0, 200) : "";
+    if (!text) {
+      res.status(400).end();
+      return;
+    }
+    if (!demoBudget.take(req.ip || "?")) {
+      res.status(429).json({ error: "The demo reached its limit for today. Please try again tomorrow." });
+      return;
+    }
+    await stream(demoQuestion(text, langFrom(body.lang)), META_API_KEY.value().trim(), res);
   },
 );
