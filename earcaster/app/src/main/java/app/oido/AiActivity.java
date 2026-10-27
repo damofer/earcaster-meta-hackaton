@@ -5,6 +5,7 @@ import android.media.AudioAttributes;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.text.format.DateFormat;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.LinearLayout;
@@ -26,6 +27,7 @@ import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TimeZone;
 
 /**
  * A patient's AI assistant (spec 017), on the caregiver's phone: turn it on after accepting
@@ -94,6 +96,7 @@ public class AiActivity extends AppCompatActivity {
         findViewById(R.id.ai_voice).setOnClickListener(v -> chooseVoice());
         findViewById(R.id.ai_save).setOnClickListener(v -> save(true));
         findViewById(R.id.ai_talks_delete).setOnClickListener(v -> confirmDeleteTalks());
+        findViewById(R.id.ai_summary_now).setOnClickListener(v -> summarize());
 
         setEnabled(false);
         status.setText(R.string.reading);
@@ -310,6 +313,43 @@ public class AiActivity extends AppCompatActivity {
             }
             talksView.addView(item);
         }
+    }
+
+    // --- Today's summary (spec 019) ---
+
+    private void summarize() {
+        Calendar now = Calendar.getInstance();
+        Calendar midnight = (Calendar) now.clone();
+        midnight.set(Calendar.HOUR_OF_DAY, 0);
+        midnight.set(Calendar.MINUTE, 0);
+        midnight.set(Calendar.SECOND, 0);
+        midnight.set(Calendar.MILLISECOND, 0);
+        JSONObject body = new JSONObject();
+        try {
+            body.put("pid", pid);
+            body.put("day", AiClient.day(now));
+            body.put("from", midnight.getTimeInMillis());
+            body.put("to", now.getTimeInMillis());
+            body.put("label", DateFormat.format("EEEE d MMMM yyyy", now).toString());
+            body.put("zone", TimeZone.getDefault().getID());
+        } catch (JSONException e) {
+            return;
+        }
+        TextView text = findViewById(R.id.ai_summary);
+        View button = findViewById(R.id.ai_summary_now);
+        text.setVisibility(View.VISIBLE);
+        text.setText(R.string.ai_summary_writing);
+        button.setEnabled(false);
+        AiClient.call("summaryNow", body, (r, error) -> {
+            if (isFinishing() || isDestroyed()) return;
+            button.setEnabled(true);
+            if (r == null) {
+                text.setText(error);
+                return;
+            }
+            String said = r.optString("text");
+            text.setText(said.isEmpty() ? getString(R.string.ai_summary_empty) : said);
+        });
     }
 
     private void confirmDeleteTalks() {

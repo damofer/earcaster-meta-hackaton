@@ -16,6 +16,7 @@ import type { Response } from "express";
 import { resolve, tools } from "./actions";
 import { EvenChunker, frame } from "./frames";
 import { askMuse } from "./muse";
+import { askSummary, dayLog } from "./summary";
 import { systemPrompt } from "./prompt";
 import { aiSettings } from "./settings";
 import { MAX_SENTENCES, checkSentence, takeSentences } from "./speech";
@@ -561,3 +562,69 @@ export const voices = onRequest({ secrets: [ELEVENLABS_API_KEY], timeoutSeconds:
     res.status(502).end();
   }
 });
+
+/**
+ * The caregiver's summary of today (spec 019), on demand from the Assistant screen. Muse Spark writes it through the
+ * earcaster-muse engine; it is kept 30 days in patients/{pid}/summaries/{day} for the caregiver to read again.
+ */
+export const summaryNow = onRequest(
+  { secrets: [ENGINE_TOKEN], timeoutSeconds: 60 },
+  async (req, res) => {
+    if (req.method !== "POST") {
+      res.status(405).end();
+      return;
+    }
+    const who = await caller(req);
+    if (!who || who.anonymous) {
+      res.status(401).end();
+      return;
+    }
+    const body = (req.body || {}) as Record<string, unknown>;
+    const pid = str(body.pid, 64);
+    const day = typeof body.day === "string" && /^\d{4}-\d{2}-\d{2}$/.test(body.day) ? body.day : "";
+    const from = typeof body.from === "number" ? body.from : 0;
+    const to = Math.min(typeof body.to === "number" ? body.to : 0, Date.now());
+    const label = str(body.label, 80);
+    if (!pid || !day || !label || !from || to <= from || to - from > 36 * 3600_000) {
+      res.status(400).end();
+      return;
+    }
+    const patient = db.collection("patients").doc(pid);
+    const snap = await patient.get();
+    if (!snap.exists || snap.get("caregiverUid") !== who.uid) {
+      res.status(403).end();
+      return;
+    }
+    // The summary sends the day's conversations to Meta: only with the caregiver's consent (017 R13).
+    if (!snap.get("aiConsentAt")) {
+      res.status(403).end();
+      return;
+    }
+    if (!(await countAnswer(patient, `resumen-${day}`, 20))) {
+      res.status(429).end();
+      return;
+    }
+    const lang = langOf(req);
+    try {
+      const profile = profileFrom((await patient.collection("private").doc("profile").get()).data());
+      const log = await dayLog(patient, profile, doseNamesFrom(snap.get("config")), from, to, label,
+        str(body.zone, 60) || "America/Bogota", lang);
+      // Nothing written down today: nothing to send to Meta.
+      if (!log.talks.length && !log.doses.length && !log.help.length) {
+        res.json({ text: "" });
+        return;
+      }
+      const summary = await askSummary(ENGINE_TOKEN.value().trim(), log);
+      await patient.collection("summaries").doc(day).set({
+        text: summary.text,
+        stats: summary.stats,
+        at: FieldValue.serverTimestamp(),
+        expireAt: Timestamp.fromMillis(Date.now() + 30 * DAY_MS),
+      });
+      res.json(summary);
+    } catch (e) {
+      logger.error("Could not write the summary", e);
+      res.status(502).end();
+    }
+  },
+);

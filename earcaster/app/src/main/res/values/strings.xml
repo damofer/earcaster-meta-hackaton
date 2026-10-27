@@ -504,4 +504,9 @@
     <string name="ai_model_hint">Quién escribe las respuestas: Claude, de Anthropic, o Muse Spark, de Meta. Las reglas, la ficha y la voz son las mismas con los dos.</string>
     <string name="ai_model_meta_title">Las respuestas las escribirá Meta</string>
     <string name="ai_model_meta_msg">Con Muse Spark, el texto de lo que diga la persona, la ficha, la hora, sus visitas y las tomas de hoy irán a Meta en lugar de a Anthropic. La voz sigue siendo de ElevenLabs.</string>
+    <string name="resumen_de_hoy">Resumen de hoy</string>
+    <string name="ai_summary_hint">Muse Spark, de Meta, lee las conversaciones, las tomas y los avisos de hoy y te cuenta cómo fue el día. Solo dice lo que está apuntado.</string>
+    <string name="generar_ahora">Generar ahora</string>
+    <string name="ai_summary_writing">Escribiendo el resumen…</string>
+    <string name="ai_summary_empty">Hoy no hay nada apuntado todavía.</string>
 </resources>

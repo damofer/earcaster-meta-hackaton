@@ -13,7 +13,7 @@ const profile: Profile = {
   help: false,
 };
 
-test("el motor de Meta recibe las acciones permitidas sin números (spec 018)", () => {
+test("the Meta engine gets the allowed actions without phone numbers (spec 018)", () => {
   const allowed = allowedFor(profile, ["Pastilla de la mañana"]);
   assert.deepEqual(allowed, {
     call: [{ name: "Carlos", relation: "su hijo" }],
@@ -24,7 +24,7 @@ test("el motor de Meta recibe las acciones permitidas sin números (spec 018)", 
   assert.doesNotMatch(JSON.stringify(allowed), /600000000/);
 });
 
-test("la acción del motor vuelve a pasar por resolve() y toma el número de la ficha (spec 018)", () => {
+test("the engine's action goes through resolve() again and takes the number from the profile (spec 018)", () => {
   assert.deepEqual(actionFrom({ type: "call", name: "Carlos" }, profile), { type: "call", name: "Carlos", number: "+34600000000" });
   assert.deepEqual(actionFrom({ type: "light", on: true }, profile), { type: "light", on: true });
   assert.equal(actionFrom({ type: "help" }, profile), null);

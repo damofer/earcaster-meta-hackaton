@@ -70,6 +70,11 @@ service cloud.firestore {
         allow read, delete: if isCaregiver(pid);
       }
 
+      // The daily summary (spec 019): only the function writes it, kept 30 days.
+      match /summaries/{day} {
+        allow read, delete: if isCaregiver(pid);
+      }
+
       match /devices/{uid} {
         allow read, delete: if isCaregiver(pid) || (signedIn() && request.auth.uid == uid);
         allow update: if signedIn() && request.auth.uid == uid;

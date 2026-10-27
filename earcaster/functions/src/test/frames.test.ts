@@ -25,7 +25,7 @@ test("ajustes de la IA", () => {
     { on: true, name: "Lucía", voice: "v1", max: 500, model: "claude" });
 });
 
-test("modelo de la IA (spec 018)", () => {
+test("AI model (spec 018)", () => {
   assert.equal(aiSettings(JSON.stringify({ ai_model: "meta" })).model, "meta");
   assert.equal(aiSettings(JSON.stringify({ ai_model: "claude" })).model, "claude");
   assert.equal(aiSettings(JSON.stringify({ ai_model: "otro" })).model, "claude");

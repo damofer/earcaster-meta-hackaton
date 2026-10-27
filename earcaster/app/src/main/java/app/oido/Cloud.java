@@ -241,7 +241,7 @@ final class Cloud {
 
     /** Deletes the patient with their recordings, doses, alerts and linked phones. */
     static void deletePatient(String pid, Done done) {
-        String[] subs = {"sounds", "doses", "events", "devices", "private", "talks", "usage"};
+        String[] subs = {"sounds", "doses", "events", "devices", "private", "talks", "usage", "summaries"};
         deleteCollections(pid, subs, 0, error -> {
             if (error != null) {
                 done.done(error);
