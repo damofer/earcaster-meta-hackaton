@@ -17,6 +17,7 @@ import { resolve, tools } from "./actions";
 import { EvenChunker, frame } from "./frames";
 import { askMuse } from "./muse";
 import { askSummary, dayLog } from "./summary";
+import { askBrief, weekLog } from "./brief";
 import { askUpdates, profileTexts, weeklyVisitsFrom, withoutNumbers } from "./updates";
 import { systemPrompt } from "./prompt";
 import { aiSettings } from "./settings";
@@ -680,6 +681,69 @@ export const proposeUpdates = onRequest(
       }));
     } catch (e) {
       logger.error("Could not read the family message", e);
+      res.status(502).end();
+    }
+  },
+);
+
+/**
+ * Spec 021: the brief for a relative about to visit, from the last 7 days, on demand from the Assistant screen. The
+ * caregiver shares it with Android's Share, so no visitor number is kept. Kept 7 days in briefs/{day-visitor}.
+ */
+export const briefNow = onRequest(
+  { secrets: [ENGINE_TOKEN], timeoutSeconds: 60 },
+  async (req, res) => {
+    if (req.method !== "POST") {
+      res.status(405).end();
+      return;
+    }
+    const who = await caller(req);
+    if (!who || who.anonymous) {
+      res.status(401).end();
+      return;
+    }
+    const body = (req.body || {}) as Record<string, unknown>;
+    const pid = str(body.pid, 64);
+    const day = typeof body.day === "string" && /^\d{4}-\d{2}-\d{2}$/.test(body.day) ? body.day : "";
+    const visitor = str(body.visitor, 60);
+    const from = typeof body.from === "number" ? body.from : 0;
+    const to = Math.min(typeof body.to === "number" ? body.to : 0, Date.now());
+    const range = str(body.range, 80);
+    if (!pid || !day || !visitor || !range || !from || to <= from || to - from > 8 * DAY_MS) {
+      res.status(400).end();
+      return;
+    }
+    const patient = db.collection("patients").doc(pid);
+    const snap = await patient.get();
+    if (!snap.exists || snap.get("caregiverUid") !== who.uid) {
+      res.status(403).end();
+      return;
+    }
+    // The week's conversations go to Meta: only with the caregiver's consent (017 R13).
+    if (!snap.get("aiConsentAt")) {
+      res.status(403).end();
+      return;
+    }
+    if (!(await countAnswer(patient, `visita-${day}`, 20))) {
+      res.status(429).end();
+      return;
+    }
+    const lang = langOf(req);
+    try {
+      const profile = profileFrom((await patient.collection("private").doc("profile").get()).data());
+      const week = await weekLog(patient, profile, doseNamesFrom(snap.get("config")), visitor, from, to, range,
+        str(body.zone, 60) || "America/Bogota", lang);
+      const out = await askBrief(ENGINE_TOKEN.value().trim(), week);
+      await patient.collection("briefs").doc(`${day}-${visitor.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, "-")}`).set({
+        visitor,
+        text: out.text,
+        stats: out.stats ?? null,
+        at: FieldValue.serverTimestamp(),
+        expireAt: Timestamp.fromMillis(Date.now() + 7 * DAY_MS),
+      });
+      res.json(out);
+    } catch (e) {
+      logger.error("Could not write the visit brief", e);
       res.status(502).end();
     }
   },

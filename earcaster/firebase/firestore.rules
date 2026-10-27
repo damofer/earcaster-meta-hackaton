@@ -75,6 +75,11 @@ service cloud.firestore {
         allow read, delete: if isCaregiver(pid);
       }
 
+      // The visit brief (spec 021): only the function writes it, kept 7 days.
+      match /briefs/{id} {
+        allow read, delete: if isCaregiver(pid);
+      }
+
       match /devices/{uid} {
         allow read, delete: if isCaregiver(pid) || (signedIn() && request.auth.uid == uid);
         allow update: if signedIn() && request.auth.uid == uid;

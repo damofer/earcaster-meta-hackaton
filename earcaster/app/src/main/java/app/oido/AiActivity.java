@@ -24,6 +24,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
@@ -63,6 +64,8 @@ public class AiActivity extends AppCompatActivity {
     private String voiceLabel = "";
     /** The caregiver already accepted what data leaves the phone (R13). Null while loading. */
     private Boolean consent;
+    /** Who visits, from the settings' weekly and one-off visits, for the visit brief (spec 021). */
+    private final List<String> visitors = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -98,6 +101,8 @@ public class AiActivity extends AppCompatActivity {
         findViewById(R.id.ai_save).setOnClickListener(v -> save(true));
         findViewById(R.id.ai_talks_delete).setOnClickListener(v -> confirmDeleteTalks());
         findViewById(R.id.ai_summary_now).setOnClickListener(v -> summarize());
+        findViewById(R.id.ai_brief_now).setOnClickListener(v -> chooseVisitor());
+        findViewById(R.id.ai_brief_share).setOnClickListener(v -> shareBrief());
         findViewById(R.id.ai_updates).setOnClickListener(v -> startActivity(new Intent(this, UpdatesActivity.class)
                 .putExtra(MainActivity.EXTRA_PATIENT, pid)
                 .putExtra(MainActivity.EXTRA_PATIENT_NAME, getIntent().getStringExtra(MainActivity.EXTRA_PATIENT_NAME))));
@@ -146,6 +151,9 @@ public class AiActivity extends AppCompatActivity {
         } catch (JSONException e) {
             o = new JSONObject();
         }
+        visitors.clear();
+        for (Agenda.Fixed f : Agenda.Fixed.fromJson(o.optString("fixed_visits", "[]"))) addVisitor(f.name);
+        for (Agenda.Once v : Agenda.Once.fromJson(o.optString("once_visits", "[]"))) addVisitor(v.name);
         on.setChecked(o.optBoolean(Prefs.AI_ON, false));
         name.setText(o.optString(Prefs.AI_NAME, Prefs.defaultAiName()));
         model.check(Prefs.AI_MODEL_META.equals(o.optString(Prefs.AI_MODEL)) ? R.id.ai_model_meta : R.id.ai_model_claude);
@@ -354,6 +362,90 @@ public class AiActivity extends AppCompatActivity {
             String said = r.optString("text");
             text.setText(said.isEmpty() ? getString(R.string.ai_summary_empty) : said);
         });
+    }
+
+    // --- Before the visit (spec 021) ---
+
+    private void addVisitor(String name) {
+        String n = name == null ? "" : name.trim();
+        for (String v : visitors) if (v.equalsIgnoreCase(n)) return;
+        if (!n.isEmpty()) visitors.add(n);
+    }
+
+    private void chooseVisitor() {
+        String[] items = new String[visitors.size() + 1];
+        for (int k = 0; k < visitors.size(); k++) items[k] = visitors.get(k);
+        items[visitors.size()] = getString(R.string.brief_someone_else);
+        new MaterialAlertDialogBuilder(this)
+                .setTitle(R.string.brief_who_visits)
+                .setItems(items, (d, w) -> {
+                    if (w < visitors.size()) brief(visitors.get(w));
+                    else askVisitorName();
+                })
+                .show();
+    }
+
+    private void askVisitorName() {
+        EditText input = new EditText(this);
+        input.setInputType(android.text.InputType.TYPE_CLASS_TEXT | android.text.InputType.TYPE_TEXT_FLAG_CAP_WORDS);
+        input.setHint(R.string.brief_visitor_name);
+        new MaterialAlertDialogBuilder(this)
+                .setTitle(R.string.brief_who_visits)
+                .setView(input)
+                .setPositiveButton(R.string.brief_write, (d, w) -> {
+                    String n = input.getText().toString().trim();
+                    if (!n.isEmpty()) brief(n);
+                })
+                .setNegativeButton(R.string.cancel, null)
+                .show();
+    }
+
+    private void brief(String visitor) {
+        Calendar now = Calendar.getInstance();
+        Calendar from = (Calendar) now.clone();
+        from.add(Calendar.DAY_OF_MONTH, -6);
+        from.set(Calendar.HOUR_OF_DAY, 0);
+        from.set(Calendar.MINUTE, 0);
+        from.set(Calendar.SECOND, 0);
+        from.set(Calendar.MILLISECOND, 0);
+        JSONObject body = new JSONObject();
+        try {
+            body.put("pid", pid);
+            body.put("day", AiClient.day(now));
+            body.put("visitor", visitor);
+            body.put("from", from.getTimeInMillis());
+            body.put("to", now.getTimeInMillis());
+            body.put("range", getString(R.string.brief_range,
+                    DateFormat.format("d MMMM", from).toString(), DateFormat.format("d MMMM", now).toString()));
+            body.put("zone", TimeZone.getDefault().getID());
+        } catch (JSONException e) {
+            return;
+        }
+        TextView text = findViewById(R.id.ai_brief);
+        View button = findViewById(R.id.ai_brief_now);
+        View share = findViewById(R.id.ai_brief_share);
+        text.setVisibility(View.VISIBLE);
+        text.setText(R.string.brief_writing);
+        share.setVisibility(View.GONE);
+        button.setEnabled(false);
+        AiClient.call("briefNow", body, (r, error) -> {
+            if (isFinishing() || isDestroyed()) return;
+            button.setEnabled(true);
+            if (r == null) {
+                text.setText(error);
+                return;
+            }
+            String said = r.optString("text");
+            text.setText(said.isEmpty() ? getString(R.string.ai_summary_empty) : said);
+            share.setVisibility(said.isEmpty() ? View.GONE : View.VISIBLE);
+        });
+    }
+
+    /** With Android's Share (WhatsApp or any app): Earcaster keeps no visitor numbers (021 R5). */
+    private void shareBrief() {
+        String text = ((TextView) findViewById(R.id.ai_brief)).getText().toString();
+        startActivity(Intent.createChooser(new Intent(Intent.ACTION_SEND).setType("text/plain")
+                .putExtra(Intent.EXTRA_TEXT, text), getString(R.string.brief_share)));
     }
 
     private void confirmDeleteTalks() {

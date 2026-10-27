@@ -1,7 +1,7 @@
 # 021 · Before the visit
 
 **Stage:** 4 · Connected caregiver and AI
-**Status:** Planned
+**Status:** In progress
 
 > Written during the Meta Global AI Developer Hackathon, in English.
 
@@ -35,11 +35,11 @@ A relative who visits once a week arrives without knowing how the week went, and
 
 - **Engine:** `museBrief`, built on `summary.ts` with a 7-day log and the visitor's name.
 - **Server:** `briefNow` (on demand) reuses `dayLog` across 7 days; an automatic brief would need Cloud Scheduler and is left for later, as in 019.
-- **App:** a switch per visit and a **Brief** card in **Assistant** with **Share**.
+- **App:** a **Before the visit** section in **Assistant**: pick the visitor from the weekly and one-off visits (or type a name), read the brief, **Share**. Kept 7 days in `briefs/{day-visitor}`.
 
 ## Tasks
 
-- [ ] T1. `museBrief` with tests (R2, R3, R4).
-- [ ] T2. `briefNow` over 7 days (R1, R6).
-- [ ] T3. Switch per visit, brief card and **Share** (R1, R5).
+- [x] T1. `museBrief` with tests (R2, R3, R4).
+- [x] T2. `briefNow` over 7 days (R1, R6).
+- [x] T3. Brief card with the visitors from the schedule and **Share** (R1, R5). The switch per visit waits for the automatic brief.
 - [ ] T4. Check criteria 1 to 4 on a phone.

@@ -537,4 +537,15 @@
     <string name="aprobar">Aprobar</string>
     <string name="descartar">Descartar</string>
     <string name="up_open">Actualizar desde un mensaje de la familia</string>
+    <!-- Before the visit (spec 021) -->
+    <string name="antes_de_la_visita">Antes de la visita</string>
+    <string name="brief_hint">Muse Spark, de Meta, resume la semana para quien va a visitar: qué preguntó, cuántas veces preguntó por esa persona y tres temas para conversar. Lo envías tú, por WhatsApp o donde quieras.</string>
+    <string name="brief_now">Escribir el resumen para una visita</string>
+    <string name="brief_who_visits">¿Quién va a visitar?</string>
+    <string name="brief_someone_else">Otra persona…</string>
+    <string name="brief_visitor_name">Nombre</string>
+    <string name="brief_write">Escribir</string>
+    <string name="brief_writing">Escribiendo el resumen de la semana…</string>
+    <string name="brief_share">Compartir</string>
+    <string name="brief_range">del %1$s al %2$s</string>
 </resources>

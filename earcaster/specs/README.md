@@ -46,7 +46,7 @@ Una spec no cambia en silencio: si al construirla algo resulta distinto, se corr
 | 4 · Cuidador conectado e IA | [018](018-choose-ai-model/spec.md) | Choose the AI model: Claude or Meta (Muse Spark) | En curso |
 | 4 · Cuidador conectado e IA | [019](019-daily-summary/spec.md) | The caregiver's daily summary (Muse Spark) | En curso |
 | 4 · Cuidador conectado e IA | [020](020-family-updates/spec.md) | The family updates the profile by writing | En curso |
-| 4 · Cuidador conectado e IA | [021](021-visit-brief/spec.md) | Before the visit: a brief for the visitor | Planned |
+| 4 · Cuidador conectado e IA | [021](021-visit-brief/spec.md) | Before the visit: a brief for the visitor | En curso |
 | 4 · Cuidador conectado e IA | [022](022-change-alert/spec.md) | Alert when something changes | Planned |
 | 4 · Cuidador conectado e IA | [023](023-scam-shield/spec.md) | Scam shield | Draft |
 
