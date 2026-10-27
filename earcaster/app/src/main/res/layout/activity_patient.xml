@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Patient mode (spec 015, R4–R5): basic version of the spec 004 screen -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/bg">
+
+    <!-- Before linking -->
+    <ScrollView
+        android:id="@+id/pa_link_panel"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true"
+        android:visibility="gone">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="vertical"
+            android:padding="24dp">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/vincular_con_el_cuidador"
+                android:textColor="?attr/colorOnSurface"
+                android:textSize="30sp"
+                android:textStyle="bold" />
+
+            <TextView
+                style="@style/Hint"
+                android:layout_marginTop="12dp"
+                android:text="@string/patient_en_el_telefono_del_cuidador" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/pa_scan"
+                android:layout_width="match_parent"
+                android:layout_height="80dp"
+                android:layout_marginTop="32dp"
+                android:text="@string/leer_el_codigo_qr"
+                android:textSize="20sp"
+                app:cornerRadius="24dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/pa_type"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="match_parent"
+                android:layout_height="72dp"
+                android:layout_marginTop="12dp"
+                android:text="@string/escribir_el_codigo"
+                android:textSize="18sp"
+                app:cornerRadius="24dp" />
+
+            <TextView
+                android:id="@+id/pa_link_status"
+                style="@style/Hint"
+                android:layout_marginTop="16dp"
+                android:gravity="center" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/pa_back"
+                style="@style/Widget.Material3.Button.TextButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:text="@string/volver_a_elegir_quien_usa" />
+        </LinearLayout>
+    </ScrollView>
+
+    <!-- Linked: time, day and date in large type -->
+    <LinearLayout
+        android:id="@+id/pa_main_panel"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:padding="24dp"
+        android:visibility="gone">
+
+        <TextClock
+            android:id="@+id/pa_clock"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:format12Hour="h:mm"
+            android:format24Hour="H:mm"
+            android:textColor="?attr/colorOnSurface"
+            android:textSize="96sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/pa_day"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="?attr/colorOnSurface"
+            android:textSize="44sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/pa_date"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="?attr/colorOnSurface"
+            android:textSize="34sp" />
+
+        <TextView
+            android:id="@+id/pa_status"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="40dp"
+            android:background="@drawable/status_card"
+            android:gravity="center"
+            android:padding="20dp"
+            android:textColor="?attr/colorOnSurface"
+            android:textSize="26sp"
+            android:textStyle="bold" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/pa_start"
+            android:layout_width="match_parent"
+            android:layout_height="96dp"
+            android:layout_marginTop="16dp"
+            android:text="@string/empezar_a_escuchar"
+            android:textSize="24sp"
+            android:visibility="gone"
+            app:cornerRadius="32dp"
+            app:icon="@drawable/ic_mic"
+            app:iconGravity="textStart"
+            app:iconSize="36dp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/pa_silence"
+            android:layout_width="match_parent"
+            android:layout_height="96dp"
+            android:layout_marginTop="16dp"
+            android:backgroundTint="@color/danger"
+            android:text="@string/parar"
+            android:textSize="24sp"
+            android:visibility="gone"
+            app:cornerRadius="32dp"
+            app:icon="@drawable/ic_stop_round"
+            app:iconGravity="textStart"
+            app:iconSize="36dp" />
+    </LinearLayout>
+
+    <!-- Exit corner: hold for 3 seconds and it asks for the PIN (spec 004, R4) -->
+    <View
+        android:id="@+id/pa_corner"
+        android:layout_width="72dp"
+        android:layout_height="72dp"
+        android:layout_gravity="top|end"
+        android:contentDescription="@string/salir_mantener_pulsado" />
+</FrameLayout>

@@ -1,0 +1,1396 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Earcaster · responde con una voz conocida</title>
+<meta name="description" content="Earcaster es una app de Android que escucha en segundo plano y, cuando oye una frase, responde con la grabación de un familiar, una voz que dice la hora o una acción, sin internet. Con dos teléfonos, quien cuida lo prepara de lejos y puede encender a Clara, una asistente con IA que usa internet.">
+<meta property="og:title" content="Earcaster">
+<meta property="og:description" content="Cuando escucha una frase, responde con una voz conocida, aunque no haya internet. Y para lo que nadie anticipó, está Clara, su asistente con IA.">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="es_ES">
+<meta property="og:locale:alternate" content="en_US">
+<meta property="og:url" content="https://earcaster.web.app/">
+<meta name="theme-color" content="#e0532b">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='18 18 72 72'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%23FFFBF8'/%3E%3Cstop offset='1' stop-color='%23FCE9E2'/%3E%3C/linearGradient%3E%3C/defs%3E%3Ccircle cx='54' cy='54' r='35' fill='url(%23g)' stroke='%23E0522A' stroke-opacity='.3' stroke-width='2'/%3E%3Cpath d='M38.44,49.65 C38.44,38.94 46.09,31.80 54.76,31.80 C63.43,31.80 69.55,38.43 69.55,47.61 C69.55,55.26 65.47,59.34 61.90,62.91 C59.35,65.46 58.33,68.01 57.31,71.58 C55.98,76.17 52.72,78.72 48.64,78.21 C45.58,77.80 43.54,75.66 43.03,73.11' fill='none' stroke='%23E0522A' stroke-width='6.73' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M54.90,57.88 C50.26,54.40 47.94,52.08 47.94,49.53 C47.94,47.21 49.68,45.70 51.65,45.70 C53.04,45.70 54.20,46.51 54.90,47.67 C55.60,46.51 56.76,45.70 58.15,45.70 C60.12,45.70 61.86,47.21 61.86,49.53 C61.86,52.08 59.54,54.40 54.90,57.88 Z' fill='%23E0522A'/%3E%3C/svg%3E">
+<style>
+/* Language: html[lang] picks which copy shows; Spanish is the no-JS default */
+html[lang="en"] [data-lang="es"], html:not([lang="en"]) [data-lang="en"] { display: none !important; }
+</style>
+<script>
+// Pick the language before first paint: ?lang= link, then a saved choice, then the browser (Spanish browsers get Spanish, everyone else English)
+(function () {
+  var lang = null;
+  try { lang = new URLSearchParams(location.search).get("lang"); } catch (e) {}
+  if (lang !== "es" && lang !== "en") { try { lang = localStorage.getItem("earcaster-lang"); } catch (e) {} }
+  if (lang !== "es" && lang !== "en") {
+    var prefs = navigator.languages && navigator.languages.length ? navigator.languages : [navigator.language || "es"];
+    lang = /^es\b/i.test(prefs[0] || "") ? "es" : "en";
+  }
+  document.documentElement.lang = lang;
+})();
+</script>
+<style>html{scroll-behavior:smooth} body{margin:0} img{max-width:100%} [hidden]{display:none!important}</style>
+
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&display=swap">
+<style>
+/* Layout: a reading guide in one wide column; each app section = a phone with numbered markers + a caption beside it */
+:root {
+  --bg: #f7f5f2;
+  --surface: #ffffff;
+  --ink: #1d1a17;
+  --muted: #5f5852;
+  --line: #e4ded6;
+  --accent: #e0532b;
+  --accent-ink: #b23a17;
+  --accent-soft: #fbe6de;
+  --band: #20302e;
+  --band-ink: #eef3f1;
+  --band-muted: #b7c7c3;
+  --bezel: #1d1a17;
+  --display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --body: "Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #161412; --surface: #211e1b; --ink: #f2eee9; --muted: #b3aaa1; --line: #36312c;
+    --accent: #f06a42; --accent-ink: #ff9a78; --accent-soft: #3a2219;
+    --band: #1b2826; --band-ink: #eef3f1; --band-muted: #9fb3ae; --bezel: #000000;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #161412; --surface: #211e1b; --ink: #f2eee9; --muted: #b3aaa1; --line: #36312c;
+  --accent: #f06a42; --accent-ink: #ff9a78; --accent-soft: #3a2219;
+  --band: #1b2826; --band-ink: #eef3f1; --band-muted: #9fb3ae; --bezel: #000000;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--ink);
+  font-family: var(--body); font-size: 18px; line-height: 1.6;
+}
+.wrap {
+  max-width: 1080px; margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+h1, h2, h3 { font-family: var(--display); line-height: 1.12; text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(2.2rem, 5.4vw, 3.8rem); font-weight: 800; letter-spacing: -0.02em; }
+h2 { font-size: clamp(1.7rem, 3.6vw, 2.5rem); font-weight: 700; letter-spacing: -0.01em; }
+h3 { font-size: 1.35rem; font-weight: 700; }
+p { margin: 0; }
+.eyebrow {
+  font-family: var(--display); font-weight: 700; font-size: 0.8rem;
+  text-transform: uppercase; letter-spacing: 0.12em; color: var(--accent-ink);
+}
+.lead { font-size: 1.2rem; color: var(--muted); max-width: 60ch; }
+a { color: var(--accent-ink); }
+a:focus-visible, button:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+
+/* Top bar */
+.top { padding-block: 20px; }
+.top .wrap { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.brand { display: flex; align-items: center; gap: 10px; font-family: var(--display); font-weight: 800; font-size: 1.3rem; }
+.brand-dot { width: 30px; height: 30px; border-radius: 50%; background: linear-gradient(#FFFBF8, #FCE9E2); box-shadow: inset 0 0 0 1px rgba(224,82,42,.22); display: grid; place-items: center; overflow: hidden; }
+.brand-dot svg { width: 30px; height: 30px; }
+.toplinks { display: flex; gap: 18px; flex-wrap: wrap; font-size: 0.95rem; }
+.toplinks a { color: var(--muted); text-decoration: none; }
+.toplinks a:hover { color: var(--ink); text-decoration: underline; }
+
+.lang-switch { display: inline-flex; border: 1.5px solid var(--line); border-radius: 999px; padding: 3px; gap: 2px; }
+.lang-switch button {
+  font: inherit; font-family: var(--display); font-weight: 700; font-size: 0.85rem; letter-spacing: 0.04em;
+  border: 0; border-radius: 999px; padding: 6px 12px; background: transparent; color: var(--muted); cursor: pointer;
+}
+.lang-switch button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+@media (max-width: 860px) { .toplinks { order: 3; width: 100%; } }
+
+/* Hero */
+.hero { padding-block: 32px 64px; }
+.hero .wrap { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 48px; align-items: center; }
+.hero-copy { display: flex; flex-direction: column; gap: 22px; min-width: 0; }
+.hero h1 em { font-style: normal; color: var(--accent); }
+.scene {
+  display: flex; flex-direction: column; gap: 10px; max-width: 460px;
+  padding: 18px; border-radius: 18px; background: var(--surface); border: 1px solid var(--line);
+}
+.scene-label { font-size: 0.8rem; color: var(--muted); letter-spacing: 0.04em; }
+.bubble { padding: 10px 14px; border-radius: 16px; max-width: 90%; font-size: 1rem; line-height: 1.4; }
+.bubble.said { align-self: flex-start; background: var(--bg); border: 1px solid var(--line); border-bottom-left-radius: 4px; }
+.bubble.plays { align-self: flex-end; background: var(--accent-soft); color: var(--ink); border-bottom-right-radius: 4px; }
+.bubble small { display: block; font-size: 0.78rem; color: var(--muted); margin-bottom: 2px; }
+.cta-row { display: flex; gap: 12px; flex-wrap: wrap; }
+.btn {
+  display: inline-flex; align-items: center; gap: 8px; padding: 14px 24px; border-radius: 999px;
+  font-family: var(--display); font-weight: 700; font-size: 1.05rem; text-decoration: none;
+}
+.btn.primary { background: var(--accent); color: #fff; }
+.btn.ghost { border: 1.5px solid var(--line); color: var(--ink); }
+
+/* Phone with markers */
+.phone {
+  position: relative; width: 100%; max-width: 300px; margin: 0 auto;
+  border: 10px solid var(--bezel); border-radius: 36px; overflow: hidden;
+  background: var(--bezel); box-shadow: 0 24px 48px -24px rgba(0,0,0,0.35);
+}
+.phone img { display: block; width: 100%; height: auto; }
+.pin {
+  position: absolute; transform: translate(-50%, -50%);
+  width: 28px; height: 28px; border-radius: 50%;
+  background: var(--band); color: var(--band-ink); border: 2px solid #fff;
+  font-family: var(--display); font-weight: 800; font-size: 0.85rem;
+  display: grid; place-items: center; box-shadow: 0 2px 6px rgba(0,0,0,0.35);
+}
+
+/* Band: three ideas */
+.band { background: var(--band); color: var(--band-ink); padding-block: 64px; }
+.band .wrap { display: flex; flex-direction: column; gap: 36px; }
+.band .eyebrow { color: #ffb59c; }
+.band .lead { color: var(--band-muted); }
+.ideas { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; }
+.idea { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.idea-icon { width: 48px; height: 48px; border-radius: 14px; background: rgba(255,255,255,0.08); display: grid; place-items: center; }
+.idea-icon svg { width: 24px; height: 24px; fill: none; stroke: #ffb59c; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.idea p { color: var(--band-muted); }
+.flow { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font-family: var(--display); font-weight: 600; }
+.flow span.node { padding: 8px 14px; border-radius: 999px; border: 1px solid rgba(255,255,255,0.2); }
+.flow span.arrow { color: #ffb59c; }
+
+/* Tour of the interface */
+section.block { padding-block: 72px; }
+.block-head { display: flex; flex-direction: column; gap: 12px; margin-bottom: 40px; }
+.tour { display: flex; flex-direction: column; gap: 72px; }
+.screen { display: grid; grid-template-columns: 300px 1fr; gap: 56px; align-items: center; }
+.screen:nth-child(even) { grid-template-columns: 1fr 300px; }
+.screen:nth-child(even) .phone-col { order: 2; }
+.screen-copy { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.screen-copy > p { color: var(--muted); max-width: 58ch; }
+.legend { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 14px; }
+.legend li { display: grid; grid-template-columns: 32px 1fr; gap: 12px; align-items: start; }
+.legend .n {
+  width: 28px; height: 28px; border-radius: 50%; background: var(--band); color: var(--band-ink);
+  font-family: var(--display); font-weight: 800; font-size: 0.85rem; display: grid; place-items: center; margin-top: 2px;
+}
+.legend b { font-weight: 700; }
+.ui { font-family: var(--display); font-weight: 700; color: var(--accent-ink); white-space: nowrap; }
+
+/* Step by step */
+.steps-sec { background: var(--surface); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.steps { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; counter-reset: s; }
+.step { position: relative; display: grid; grid-template-columns: 64px 1fr; gap: 20px; padding-bottom: 36px; counter-increment: s; }
+.step::before {
+  content: counter(s); width: 52px; height: 52px; border-radius: 50%;
+  background: var(--accent); color: #fff; font-family: var(--display); font-weight: 800; font-size: 1.4rem;
+  display: grid; place-items: center; position: relative; z-index: 1;
+}
+.step:not(:last-child)::after {
+  content: ""; position: absolute; left: 25px; top: 56px; bottom: 4px; width: 2px; background: var(--line);
+}
+.step-body { display: flex; flex-direction: column; gap: 8px; padding-top: 10px; min-width: 0; }
+.step-body p { color: var(--muted); max-width: 64ch; }
+.tip {
+  margin-top: 6px; padding: 12px 16px; border-radius: 12px; background: var(--accent-soft);
+  font-size: 0.98rem; color: var(--ink); max-width: 64ch;
+}
+.tip b { color: var(--accent-ink); }
+
+/* Examples for caregivers */
+.examples { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+.ex { padding: 22px; border-radius: 18px; border: 1px solid var(--line); background: var(--surface); display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.ex .k { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); font-family: var(--display); font-weight: 700; }
+.ex .phrase { font-family: var(--display); font-weight: 700; font-size: 1.2rem; }
+.ex .sound { color: var(--accent-ink); }
+
+/* Problems */
+.faq { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0 40px; }
+.faq details { border-top: 1px solid var(--line); padding-block: 16px; }
+.faq summary { cursor: pointer; font-family: var(--display); font-weight: 700; font-size: 1.1rem; list-style: none; display: flex; justify-content: space-between; gap: 12px; }
+.faq summary::-webkit-details-marker { display: none; }
+.faq summary::after { content: "+"; color: var(--accent); font-size: 1.4rem; line-height: 1; }
+.faq details[open] summary::after { content: "–"; }
+.faq details p { margin-top: 10px; color: var(--muted); }
+
+.video-sec .wrap { display: grid; grid-template-columns: 340px 1fr; gap: 56px; align-items: center; }
+.video-frame { width: 100%; max-width: 340px; margin: 0 auto; border-radius: 28px; overflow: hidden; background: var(--band); box-shadow: 0 24px 48px -24px rgba(0,0,0,0.35); aspect-ratio: 9 / 16; }
+.video-frame video { display: block; width: 100%; height: 100%; object-fit: cover; }
+.video-copy { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.video-copy p { color: var(--muted); max-width: 52ch; }
+.ai { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: start; }
+.ai-copy { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.ai-copy p { color: var(--muted); max-width: 58ch; }
+.ai-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 14px; }
+.ai-list li { padding: 18px 20px; border-radius: 16px; border: 1px solid var(--line); background: var(--surface); display: flex; flex-direction: column; gap: 4px; }
+.ai-list li > b { font-family: var(--display); font-size: 1.08rem; }
+.ai-list span { color: var(--muted); font-size: 0.98rem; }
+@media (max-width: 860px) { .video-sec .wrap, .ai { grid-template-columns: 1fr; gap: 28px; } }
+.privacy { display: grid; grid-template-columns: auto 1fr; gap: 24px; align-items: center; padding: 28px; border-radius: 22px; background: var(--accent-soft); }
+.privacy svg { width: 56px; height: 56px; fill: none; stroke: var(--accent-ink); stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.privacy p { color: var(--ink); max-width: 70ch; }
+
+.download { display: grid; grid-template-columns: 1fr auto; gap: 32px; align-items: center; padding: 36px; border-radius: 24px; background: var(--band); color: var(--band-ink); }
+.download .eyebrow { color: #ffb59c; }
+.download-copy { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.download-copy p { color: var(--band-muted); max-width: 52ch; }
+.download-copy a { color: #ffb59c; }
+.download-action { display: flex; flex-direction: column; gap: 10px; align-items: flex-start; }
+.btn.big { padding: 18px 28px; font-size: 1.15rem; }
+.btn svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+.download-meta { font-size: 0.9rem; color: var(--band-muted); }
+@media (max-width: 860px) { .download { grid-template-columns: 1fr; padding: 28px 22px; } }
+footer { padding-block: 40px 56px; color: var(--muted); font-size: 0.95rem; }
+
+@media (max-width: 860px) {
+  .hero .wrap, .screen, .screen:nth-child(even) { grid-template-columns: 1fr; gap: 32px; }
+  .screen:nth-child(even) .phone-col { order: 0; }
+  .ideas, .examples { grid-template-columns: 1fr; }
+  .faq { grid-template-columns: 1fr; }
+  .phone { max-width: 270px; }
+  .privacy { grid-template-columns: 1fr; }
+}
+@media (max-width: 480px) {
+  body { font-size: 17px; }
+  .ui { white-space: normal; }
+  .step { grid-template-columns: 48px 1fr; gap: 14px; }
+  .step::before { width: 42px; height: 42px; font-size: 1.15rem; }
+  .step:not(:last-child)::after { left: 20px; top: 46px; }
+  .step-body { padding-top: 6px; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .pin { animation: pop 0.5s ease-out both; }
+  @keyframes pop { from { transform: translate(-50%, -50%) scale(0.6); } to { transform: translate(-50%, -50%) scale(1); } }
+}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <div class="brand"><span class="brand-dot"><svg viewBox="18 18 72 72" aria-hidden="true"><path d="M38.44,49.65 C38.44,38.94 46.09,31.80 54.76,31.80 C63.43,31.80 69.55,38.43 69.55,47.61 C69.55,55.26 65.47,59.34 61.90,62.91 C59.35,65.46 58.33,68.01 57.31,71.58 C55.98,76.17 52.72,78.72 48.64,78.21 C45.58,77.80 43.54,75.66 43.03,73.11" fill="none" stroke="#E0522A" stroke-width="6.73" stroke-linecap="round" stroke-linejoin="round"/><path d="M54.90,57.88 C50.26,54.40 47.94,52.08 47.94,49.53 C47.94,47.21 49.68,45.70 51.65,45.70 C53.04,45.70 54.20,46.51 54.90,47.67 C55.60,46.51 56.76,45.70 58.15,45.70 C60.12,45.70 61.86,47.21 61.86,49.53 C61.86,52.08 59.54,54.40 54.90,57.88 Z" fill="#E0522A"/></svg></span>Earcaster</div>
+    <nav class="toplinks" aria-label="Secciones" data-lang="es">
+      <a href="#video">Video</a>
+      <a href="#como">Cómo funciona</a>
+      <a href="#dos">Dos teléfonos</a>
+      <a href="#ia">Clara (IA)</a>
+      <a href="#pantallas">La app por dentro</a>
+      <a href="#pasos">Paso a paso</a>
+      <a href="#ayuda">Si algo falla</a>
+      <a href="#descargar">Descargar</a>
+    </nav>
+    <nav class="toplinks" aria-label="Sections" data-lang="en">
+      <a href="#watch">Video</a>
+      <a href="#how">How it works</a>
+      <a href="#two-phones">Two phones</a>
+      <a href="#grace">Grace (AI)</a>
+      <a href="#inside">Inside the app</a>
+      <a href="#steps">Step by step</a>
+      <a href="#help">Troubleshooting</a>
+      <a href="#download">Download</a>
+    </nav>
+    <div class="lang-switch" role="group" aria-label="Idioma · Language">
+      <button type="button" data-set-lang="es" lang="es" title="Ver en español">ES</button>
+      <button type="button" data-set-lang="en" lang="en" title="View in English">EN</button>
+    </div>
+  </div>
+</header>
+
+<div data-lang="es">
+
+<section class="hero">
+  <div class="wrap">
+    <div class="hero-copy">
+      <span class="eyebrow">App de Android · frases sin internet · asistente con IA</span>
+      <h1>Cuando escucha una frase, <em>responde con una voz conocida.</em></h1>
+      <p class="lead">Earcaster deja el teléfono escuchando en segundo plano. Cuando alguien dice una de las frases que preparaste, responde con lo que le asignaste: la grabación de un familiar, una voz que dice la hora o una acción, y eso funciona sin internet. Para lo que nadie anticipó está Clara, una asistente con inteligencia artificial que sí usa internet. Pensada para acompañar a personas mayores o con Alzheimer y a quienes las cuidan.</p>
+      <div class="scene" aria-label="Ejemplo de uso">
+        <span class="scene-label">EJEMPLO</span>
+        <div class="bubble said"><small>La abuela dice</small>«¿Dónde está Laura?»</div>
+        <div class="bubble plays"><small>Earcaster reproduce la voz de Laura</small>«Mamá, estoy en el trabajo. Vuelvo a las seis, tranquila.»</div>
+      </div>
+      <div class="cta-row">
+        <a class="btn primary" href="Earcaster.apk" download>Descargar para Android</a>
+        <a class="btn ghost" href="#pasos">Ver el paso a paso</a>
+      </div>
+    </div>
+    <div>
+      <div class="phone">
+        <img src="img/escuchando.webp" alt="Pantalla de Earcaster en estado Escuchando, con las frases «dónde está laura» y «hola»">
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="block video-sec" id="video" style="padding-top:8px">
+  <div class="wrap">
+    <div class="video-frame">
+      <video src="earcaster-promo.mp4" poster="earcaster-promo.jpg" controls playsinline preload="metadata" aria-label="Video de Earcaster: Rosa pregunta por su hija, su teléfono responde con la grabación de Lucía y Clara responde lo que nadie anticipó"></video>
+    </div>
+    <div class="video-copy">
+      <span class="eyebrow">Míralo en poco más de un minuto</span>
+      <h2>Así funciona Earcaster</h2>
+      <p>Rosa pregunta varias veces al día dónde está su hija. Su teléfono reconoce la pregunta y le responde con la voz grabada de Lucía, aunque no haya internet.</p>
+      <p>Cuando pregunta algo que nadie preparó, responde Clara, la asistente con inteligencia artificial. Clara sí necesita internet, y responde con lo que Lucía escribió sobre su mamá.</p>
+    </div>
+  </div>
+</section>
+
+<section class="band" id="como">
+  <div class="wrap">
+    <div class="block-head" style="margin-bottom:0">
+      <span class="eyebrow">Cómo funciona</span>
+      <h2>Tres cosas pasan dentro del teléfono</h2>
+      <p class="lead">No hace falta saber de tecnología. La app solo necesita saber qué frase esperar y qué responder.</p>
+    </div>
+    <div class="flow" aria-hidden="true">
+      <span class="node">Alguien habla</span><span class="arrow">→</span>
+      <span class="node">El teléfono reconoce la frase</span><span class="arrow">→</span>
+      <span class="node">Suena la respuesta</span>
+    </div>
+    <div class="ideas">
+      <div class="idea">
+        <div class="idea-icon"><svg viewBox="0 0 24 24"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><path d="M12 19v3"/></svg></div>
+        <h3>1. Escucha todo el tiempo</h3>
+        <p>Al tocar el micrófono, la app queda atenta aunque salgas de ella o bloquees la pantalla. Verás una notificación fija mientras escucha.</p>
+      </div>
+      <div class="idea">
+        <div class="idea-icon"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h10M4 17h7"/><path d="m15 17 2 2 4-4"/></svg></div>
+        <h3>2. Reconoce tus frases</h3>
+        <p>Una inteligencia artificial de reconocimiento de voz en español trabaja dentro del teléfono y compara lo que oye con tus frases. Para eso no usa internet ni envía nada.</p>
+      </div>
+      <div class="idea">
+        <div class="idea-icon"><svg viewBox="0 0 24 24"><path d="M11 5 6 9H2v6h4l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/></svg></div>
+        <h3>3. Responde</h3>
+        <p>Cuando oye la frase, pone su respuesta: una grabación o un sonido, una voz que dice la hora, el día o la próxima visita, o una acción como llamar a alguien.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="block" id="dos">
+  <div class="wrap">
+    <div class="block-head">
+      <span class="eyebrow">Novedad de la versión 1.8</span>
+      <h2>Con dos teléfonos: uno escucha y el otro lo prepara</h2>
+      <p class="lead">Quien cuida maneja todo desde su propio teléfono, aunque esté lejos: las frases, la agenda de visitas, los recordatorios y la ficha. El teléfono de la persona solo escucha y responde. Estas pantallas están recreadas a partir de la versión 1.8.</p>
+    </div>
+    <div class="tour">
+
+      <article class="screen">
+        <div class="phone-col">
+          <div class="phone">
+            <img src="img/bienvenida.webp" alt="Pantalla de bienvenida: ¿Quién va a usar este teléfono?, con los botones Soy el cuidador, Es para la persona que cuido y Usar en un solo teléfono, sin cuenta">
+            <span class="pin" style="left:8%;top:41.2%">1</span>
+            <span class="pin" style="left:8%;top:57.8%">2</span>
+            <span class="pin" style="left:15%;top:73.2%">3</span>
+          </div>
+        </div>
+        <div class="screen-copy">
+          <span class="eyebrow">Al abrir la app</span>
+          <h3>¿Quién va a usar este teléfono?</h3>
+          <p>La primera vez, la app pregunta para quién es.</p>
+          <ol class="legend">
+            <li><span class="n">1</span><span><b>Soy el cuidador.</b> Entras con tu correo y una contraseña, y añades a las personas que cuidas. Antes de crear la cuenta, la app explica qué se guarda en la nube.</span></li>
+            <li><span class="n">2</span><span><b>Es para la persona que cuido.</b> El teléfono solo escucha y responde. Se vincula una vez con el código del cuidador, sin cuenta ni contraseña.</span></li>
+            <li><span class="n">3</span><span><b>Usar en un solo teléfono, sin cuenta.</b> Como en las versiones anteriores: todo se configura y se escucha en el mismo teléfono. En este modo no está Clara.</span></li>
+          </ol>
+        </div>
+      </article>
+
+      <article class="screen">
+        <div class="phone-col">
+          <div class="phone">
+            <img src="img/mis-pacientes.webp" alt="Pantalla Mis pacientes con la tarjeta de Rosa y sus botones Frases y ajustes, Ficha, Vincular teléfono y Asistente">
+            <span class="pin" style="left:72%;top:16.7%">1</span>
+            <span class="pin" style="left:4.5%;top:21.5%">2</span>
+            <span class="pin" style="left:53%;top:21.5%">3</span>
+            <span class="pin" style="left:4.5%;top:27.2%">4</span>
+            <span class="pin" style="left:47%;top:27.2%">5</span>
+            <span class="pin" style="left:52%;top:94.4%">6</span>
+          </div>
+        </div>
+        <div class="screen-copy">
+          <span class="eyebrow">El teléfono de quien cuida</span>
+          <h3>Mis pacientes</h3>
+          <p>Cada persona tiene su tarjeta. Lo que cambias llega a su teléfono en cuanto tiene internet, y sus frases siguen funcionando aunque no lo tenga.</p>
+          <ol class="legend">
+            <li><span class="n">1</span><span><b>Estado.</b> Dice si su teléfono está escuchando o desde cuándo dejó de hacerlo. Si pidió ayuda, también aparece aquí.</span></li>
+            <li><span class="n">2</span><span><b>Frases y ajustes.</b> Sus frases, la agenda de visitas, los recordatorios y los ajustes. Son las mismas pantallas que en un solo teléfono.</span></li>
+            <li><span class="n">3</span><span><b>Ficha.</b> Lo que Clara sabe de la persona: su familia, su rutina y lo que la calma.</span></li>
+            <li><span class="n">4</span><span><b>Vincular teléfono.</b> Muestra un código QR y un código de 8 letras y números para vincular su teléfono.</span></li>
+            <li><span class="n">5</span><span><b>Asistente.</b> Enciende a Clara, elige su voz y revisa las conversaciones.</span></li>
+            <li><span class="n">6</span><span><b>Añadir paciente.</b> Puedes cuidar a varias personas desde la misma cuenta.</span></li>
+          </ol>
+        </div>
+      </article>
+
+      <article class="screen">
+        <div class="phone-col">
+          <div class="phone">
+            <img src="img/telefono-persona.webp" alt="Teléfono de la persona: la hora 15:30, Martes, 20 de octubre de 2026 y el estado Te estoy escuchando">
+            <span class="pin" style="left:13%;top:37.7%">1</span>
+            <span class="pin" style="left:7%;top:64.2%">2</span>
+          </div>
+        </div>
+        <div class="screen-copy">
+          <span class="eyebrow">El teléfono de la persona</span>
+          <h3>Grande y sin nada que confunda</h3>
+          <p>Después de vincularlo y tocar <span class="ui">Empezar a escuchar</span>, el teléfono queda así.</p>
+          <ol class="legend">
+            <li><span class="n">1</span><span><b>Hora, día y fecha.</b> Siempre a la vista y con letra grande.</span></li>
+            <li><span class="n">2</span><span><b>Estado.</b> Dice <span class="ui">Te estoy escuchando</span>. Cuando responde, muestra entre comillas la frase que reconoció y un botón rojo <span class="ui">Parar</span>.</span></li>
+          </ol>
+          <p>Para salir de esta pantalla hay que mantener pulsada la esquina de arriba a la derecha durante 3 segundos y escribir el PIN que se eligió al vincular.</p>
+        </div>
+      </article>
+
+    </div>
+  </div>
+</section>
+
+<section class="block" id="ia" style="padding-top:0">
+  <div class="wrap">
+    <div class="ai">
+      <div class="ai-copy">
+        <span class="eyebrow">Inteligencia artificial</span>
+        <h2>Dos inteligencias artificiales, cada una con su tarea</h2>
+        <p><b>La que reconoce la voz trabaja dentro del teléfono, sin internet.</b> Es un modelo de reconocimiento del español (Vosk). La app lo descarga la primera vez, unos 40 MB, y desde entonces convierte lo que oye en palabras. Earcaster responde solo cuando aparecen seguidas todas las palabras de una de tus frases, con la seguridad suficiente.</p>
+        <p><b>Clara responde lo que no está en las frases, y necesita internet.</b> Es una asistente que se enciende desde el modo cuidador. Escribe la respuesta con Claude, de Anthropic, a partir de lo que escribiste en la ficha y en la agenda, y la dice con una voz natural de ElevenLabs.</p>
+      </div>
+      <ul class="ai-list">
+        <li><b>Las frases responden primero</b><span>Si lo que oye es una de tus frases, responde la frase, sin internet y siempre igual. Clara solo contesta lo demás.</span></li>
+        <li><b>Solo cuando dicen su nombre</b><span>«Clara, ¿viene Ana hoy?». Si solo oye «Clara», contesta «¿Sí?» y espera la pregunta. Así no le responde a la televisión.</span></li>
+        <li><b>Sin internet, una frase de reserva</b><span>Si no hay conexión o la respuesta tarda más de 6 segundos, el teléfono dice la frase de reserva con su propia voz. Si tarda más de 2, suena un tono suave mientras espera.</span></li>
+        <li><b>Con límites claros</b><span>Tiene un máximo de respuestas al día (50, si no lo cambias). Al llegar, hasta el día siguiente solo responden las frases. No es un servicio médico ni de emergencias.</span></li>
+      </ul>
+    </div>
+    <div class="tour" style="margin-top:72px">
+
+      <article class="screen">
+        <div class="phone-col">
+          <div class="phone">
+            <img src="img/asistente.webp" alt="Pantalla Asistente de Rosa: Activar el asistente, Nombre del asistente Clara, Voz, Frase de reserva, Máximo de respuestas al día y una conversación de ejemplo">
+            <span class="pin" style="left:76%;top:19.6%">1</span>
+            <span class="pin" style="left:90%;top:27.2%">2</span>
+            <span class="pin" style="left:65%;top:35.3%">3</span>
+            <span class="pin" style="left:45%;top:40.9%">4</span>
+            <span class="pin" style="left:90%;top:51.7%">5</span>
+            <span class="pin" style="left:92%;top:79%">6</span>
+          </div>
+        </div>
+        <div class="screen-copy">
+          <span class="eyebrow">Asistente</span>
+          <h3>Clara se enciende aquí</h3>
+          <p>Con el botón <span class="ui">Asistente</span> de la tarjeta de la persona, en el teléfono de quien cuida.</p>
+          <ol class="legend">
+            <li><span class="n">1</span><span><b>Activar el asistente.</b> Al encenderlo, la app explica qué sale del teléfono de la persona y te pide que lo aceptes.</span></li>
+            <li><span class="n">2</span><span><b>Nombre.</b> Clara, o el que prefieras. Conviene uno que nadie de la familia tenga.</span></li>
+            <li><span class="n">3</span><span><b>Voz.</b> Si no eliges otra, habla con la voz de Clara en el video. Escuchas una muestra de cada voz antes de elegir.</span></li>
+            <li><span class="n">4</span><span><b>Frase de reserva.</b> Lo que dice el teléfono cuando Clara no puede responder, por ejemplo si no hay internet.</span></li>
+            <li><span class="n">5</span><span><b>Máximo de respuestas al día.</b> Al llegar, hasta el día siguiente solo responden sus frases.</span></li>
+            <li><span class="n">6</span><span><b>Conversaciones de los últimos 7 días.</b> Lo que se oyó y lo que respondió, como texto. Se borran solas.</span></li>
+          </ol>
+        </div>
+      </article>
+
+      <article class="screen">
+        <div class="phone-col">
+          <div class="phone">
+            <img src="img/ficha.webp" alt="Ficha de Rosa con los campos Nombre, Cómo le gusta que la llamen, Dónde vive y con quién, Familia y personas cercanas, Su rutina del día y Lo que le gusta y lo que la calma">
+            <span class="pin" style="left:93%;top:42.9%">1</span>
+            <span class="pin" style="left:93%;top:56%">2</span>
+            <span class="pin" style="left:93%;top:69.1%">3</span>
+          </div>
+        </div>
+        <div class="screen-copy">
+          <span class="eyebrow">Ficha</span>
+          <h3>Lo que Clara sabe de la persona</h3>
+          <p>Todo es opcional. No hace falta poner diagnósticos ni medicamentos con dosis.</p>
+          <ol class="legend">
+            <li><span class="n">1</span><span><b>Familia y personas cercanas.</b> Quién es quién, para que pueda decir «Lucía, tu hija, viene a las cinco».</span></li>
+            <li><span class="n">2</span><span><b>Su rutina del día.</b> Para responder según la hora: el desayuno, el almuerzo, la siesta.</span></li>
+            <li><span class="n">3</span><span><b>Lo que le gusta y lo que la calma.</b> Para cambiar de tema con cariño. Más abajo hay un campo para los temas delicados y cómo responderlos.</span></li>
+          </ol>
+          <p>Al final de la ficha, <span class="ui">Probar una pregunta</span> muestra qué respondería Clara, sin que suene en el teléfono de la persona.</p>
+        </div>
+      </article>
+
+    </div>
+  </div>
+</section>
+
+<section class="block" id="pantallas">
+  <div class="wrap">
+    <div class="block-head">
+      <span class="eyebrow">La app por dentro</span>
+      <h2>Qué hay en cada pantalla</h2>
+      <p class="lead">Así se preparan las frases, en un solo teléfono o dentro de <span class="ui">Frases y ajustes</span>. Los números sobre cada captura corresponden a la explicación de al lado. Las capturas son de la versión 1.6; en la 1.8 el editor suma <span class="ui">Responde con</span>, para que la frase responda con un sonido, con una voz o con una acción.</p>
+    </div>
+    <div class="tour">
+
+      <article class="screen">
+        <div class="phone-col">
+          <div class="phone">
+            <img src="img/inicio.webp" alt="Pantalla principal de Earcaster en pausa">
+            <span class="pin" style="left:78%;top:5.6%">1</span>
+            <span class="pin" style="left:50%;top:24.4%">2</span>
+            <span class="pin" style="left:20%;top:38.5%">3</span>
+            <span class="pin" style="left:14%;top:60.4%">4</span>
+            <span class="pin" style="left:54%;top:91.4%">5</span>
+          </div>
+        </div>
+        <div class="screen-copy">
+          <span class="eyebrow">Pantalla principal</span>
+          <h3>Todo empieza aquí</h3>
+          <p>Es lo primero que ves al abrir la app. Desde aquí enciendes la escucha y ves tus frases.</p>
+          <ol class="legend">
+            <li><span class="n">1</span><span><b>Ajustes.</b> Abre volumen, precisión y la opción para que el teléfono no cierre la app.</span></li>
+            <li><span class="n">2</span><span><b>Botón del micrófono.</b> Tócalo para empezar a escuchar. Tócalo otra vez para detener.</span></li>
+            <li><span class="n">3</span><span><b>Estado.</b> Dice si la app está <span class="ui">En pausa</span> o <span class="ui">Escuchando</span>. La primera vez avisa que descargará el reconocimiento de voz (unos 40 MB).</span></li>
+            <li><span class="n">4</span><span><b>Tus frases.</b> Cada tarjeta muestra la frase y su sonido. El botón ▶ lo reproduce; tocar la tarjeta la abre para editarla.</span></li>
+            <li><span class="n">5</span><span><b>Nueva frase.</b> Crea otra frase con su propio sonido.</span></li>
+          </ol>
+        </div>
+      </article>
+
+      <article class="screen">
+        <div class="phone-col">
+          <div class="phone">
+            <img src="img/editor.webp" alt="Editor de una nueva frase con la palabra hola">
+            <span class="pin" style="left:30%;top:41.4%">1</span>
+            <span class="pin" style="left:88%;top:41.4%">2</span>
+            <span class="pin" style="left:15%;top:59.9%">3</span>
+            <span class="pin" style="left:33.6%;top:68.5%">4</span>
+            <span class="pin" style="left:5%;top:80.4%">5</span>
+            <span class="pin" style="left:30%;top:93.9%">6</span>
+          </div>
+        </div>
+        <div class="screen-copy">
+          <span class="eyebrow">Editor de frase</span>
+          <h3>Qué se dice y qué suena</h3>
+          <p>Se abre desde abajo al tocar <span class="ui">Nueva frase</span> o una frase existente.</p>
+          <ol class="legend">
+            <li><span class="n">1</span><span><b>La frase.</b> Escribe la palabra o frase que activa el sonido. Puedes poner varias formas separadas por comas: «laura, dónde está laura».</span></li>
+            <li><span class="n">2</span><span><b>Dictar.</b> El micrófono del campo te deja decir la frase en voz alta en lugar de escribirla.</span></li>
+            <li><span class="n">3</span><span><b>Sonido elegido.</b> Muestra qué sonará. Pulsa ▶ para escucharlo.</span></li>
+            <li><span class="n">4</span><span><b>Tres formas de elegir sonido.</b> <span class="ui">Grabar</span> tu voz o la de un familiar (hasta 30 segundos), <span class="ui">Tonos</span> del teléfono, o un <span class="ui">Archivo</span> de audio (mp3, ogg, wav…).</span></li>
+            <li><span class="n">5</span><span><b>Parte que suena.</b> Arrastra los extremos para recortar el audio y quedarte solo con lo que quieres.</span></li>
+            <li><span class="n">6</span><span><b>Listo.</b> Guarda la frase. El ícono de la papelera, arriba a la derecha, la borra.</span></li>
+          </ol>
+        </div>
+      </article>
+
+      <article class="screen">
+        <div class="phone-col">
+          <div class="phone">
+            <img src="img/dictado.webp" alt="Ventana Di la frase para dictar con la voz">
+            <span class="pin" style="left:50%;top:43.1%">1</span>
+            <span class="pin" style="left:10%;top:66.6%">2</span>
+            <span class="pin" style="left:91%;top:66.6%">3</span>
+          </div>
+        </div>
+        <div class="screen-copy">
+          <span class="eyebrow">Dictar la frase</span>
+          <h3>Dila en voz alta</h3>
+          <p>Útil si escribir en el teléfono cuesta, o para comprobar cómo entiende la app esa frase. Usa el mismo reconocimiento sin internet.</p>
+          <ol class="legend">
+            <li><span class="n">1</span><span><b>Te escucha.</b> Di la frase con naturalidad. Debajo aparece lo que entendió.</span></li>
+            <li><span class="n">2</span><span><b>Repetir.</b> Si no entendió bien, vuelve a intentarlo.</span></li>
+            <li><span class="n">3</span><span><b>Añadir.</b> Pone lo que entendió en el campo de la frase.</span></li>
+          </ol>
+        </div>
+      </article>
+
+      <article class="screen">
+        <div class="phone-col">
+          <div class="phone">
+            <img src="img/editor-grabacion.webp" alt="Editor con una grabación propia de 6 segundos recortada">
+            <span class="pin" style="left:41%;top:59%">1</span>
+            <span class="pin" style="left:56%;top:75.9%">2</span>
+          </div>
+        </div>
+        <div class="screen-copy">
+          <span class="eyebrow">Con una grabación</span>
+          <h3>La voz de la familia</h3>
+          <p>Así se ve después de grabar con <span class="ui">Grabar</span>. Es la opción que más ayuda a una persona con Alzheimer: escuchar una voz querida en vez de un pitido.</p>
+          <ol class="legend">
+            <li><span class="n">1</span><span><b>Mi grabación.</b> El nombre muestra cuánto dura la grabación completa, y debajo cuánto dura la parte que va a sonar.</span></li>
+            <li><span class="n">2</span><span><b>Tiempos del recorte.</b> Indican desde y hasta qué segundo suena. Se ajustan de una décima en una décima al mover los extremos.</span></li>
+          </ol>
+        </div>
+      </article>
+
+      <article class="screen">
+        <div class="phone-col">
+          <div class="phone">
+            <img src="img/ajustes.webp" alt="Hoja de ajustes con volumen, precisión y botón Evitar que el teléfono la cierre">
+            <span class="pin" style="left:50%;top:60%">1</span>
+            <span class="pin" style="left:58%;top:70%">2</span>
+            <span class="pin" style="left:12%;top:86.3%">3</span>
+          </div>
+        </div>
+        <div class="screen-copy">
+          <span class="eyebrow">Ajustes</span>
+          <h3>Volumen, precisión y batería</h3>
+          <p>Se abren con el ícono de controles arriba a la derecha.</p>
+          <ol class="legend">
+            <li><span class="n">1</span><span><b>Volumen del sonido.</b> Qué tan fuerte suena cuando reconoce una frase.</span></li>
+            <li><span class="n">2</span><span><b>Precisión.</b> Hacia la izquierda <span class="ui">Reacciona más rápido</span>; hacia la derecha <span class="ui">Menos falsas alarmas</span>. Si suena sin que nadie diga la frase, súbela.</span></li>
+            <li><span class="n">3</span><span><b>Evitar que el teléfono la cierre.</b> Pide a Android que no detenga la app para ahorrar batería. Muy recomendado.</span></li>
+          </ol>
+        </div>
+      </article>
+
+      <article class="screen">
+        <div class="phone-col">
+          <div class="phone">
+            <img src="img/escuchando.webp" alt="Pantalla principal escuchando las frases «dónde está laura» y «hola»">
+            <span class="pin" style="left:50%;top:24.4%">1</span>
+            <span class="pin" style="left:22%;top:41.7%">2</span>
+          </div>
+        </div>
+        <div class="screen-copy">
+          <span class="eyebrow">Escuchando</span>
+          <h3>Ya está trabajando</h3>
+          <p>Con la escucha encendida puedes salir de la app o bloquear la pantalla.</p>
+          <ol class="legend">
+            <li><span class="n">1</span><span><b>Botón rojo de detener.</b> Apaga la escucha. También puedes detenerla desde la notificación.</span></li>
+            <li><span class="n">2</span><span><b>Frases activas.</b> La lista de frases que la app está esperando oír.</span></li>
+          </ol>
+        </div>
+      </article>
+
+    </div>
+  </div>
+</section>
+
+<section class="block steps-sec" id="pasos">
+  <div class="wrap">
+    <div class="block-head">
+      <span class="eyebrow">Paso a paso</span>
+      <h2>De cero a funcionando en diez minutos</h2>
+      <p class="lead">Así se prepara en un solo teléfono. Sigue los pasos en orden la primera vez; después solo necesitas el paso 8 para encender o apagar. Para usar dos teléfonos y Clara, sigue también los pasos de más abajo.</p>
+    </div>
+    <ol class="steps">
+      <li class="step"><div class="step-body">
+        <h3>Instala la app</h3>
+        <p><a href="Earcaster.apk" download>Descarga Earcaster.apk</a> desde el teléfono y ábrelo (Android 8 o superior). Si Android pregunta, permite «instalar apps de origen desconocido». Si Play Protect avisa que no la conoce, elige <span class="ui">Instalar de todas formas</span>: es normal en apps que no vienen de la Play Store.</p>
+      </div></li>
+      <li class="step"><div class="step-body">
+        <h3>Elige «Usar en un solo teléfono»</h3>
+        <p>La primera vez la app pregunta quién va a usar el teléfono. Para empezar con lo más simple, toca <span class="ui">Usar en un solo teléfono, sin cuenta</span>.</p>
+      </div></li>
+      <li class="step"><div class="step-body">
+        <h3>Toca «Nueva frase»</h3>
+        <p>En la pantalla principal, abajo a la derecha. Se abre el editor.</p>
+      </div></li>
+      <li class="step"><div class="step-body">
+        <h3>Escribe o dicta la frase</h3>
+        <p>Escribe lo que la persona suele decir, o toca el micrófono del campo para dictarlo. Si se dice de varias maneras, sepáralas con comas.</p>
+        <p class="tip"><b>Consejo:</b> los números van con letras («cinco», no «5»). Las frases de dos o tres palabras se reconocen mejor que una sola palabra corta.</p>
+      </div></li>
+      <li class="step"><div class="step-body">
+        <h3>Elige qué responde</h3>
+        <p>En <span class="ui">Responde con</span> elige <span class="ui">Un sonido</span> y toca <span class="ui">Grabar</span> para que el familiar diga su mensaje, o elige uno en <span class="ui">Tonos</span> o <span class="ui">Archivo</span>. Pulsa ▶ para escucharlo.</p>
+        <p>También puedes elegir <span class="ui">Una voz</span>, que lee un texto con la hora, el día o la próxima visita, o <span class="ui">Una acción</span>, como llamar a un contacto o avisar que necesita ayuda.</p>
+        <p class="tip"><b>Para cuidadores:</b> un mensaje corto, tranquilo y con el nombre de la persona («Mamá, soy Laura…») suele funcionar mejor que uno largo.</p>
+      </div></li>
+      <li class="step"><div class="step-body">
+        <h3>Recorta si hace falta</h3>
+        <p>En <span class="ui">Parte que suena</span>, arrastra los extremos para quitar silencios o ruidos al principio y al final. Pulsa ▶ para oír el resultado.</p>
+      </div></li>
+      <li class="step"><div class="step-body">
+        <h3>Toca «Listo»</h3>
+        <p>La frase aparece en <span class="ui">Tus frases</span>. Repite los pasos 3 a 7 para cada frase que quieras.</p>
+      </div></li>
+      <li class="step"><div class="step-body">
+        <h3>Toca el micrófono grande</h3>
+        <p>La primera vez descarga el reconocimiento de voz en español (unos 40 MB, solo una vez) y pide permiso para usar el micrófono y mostrar notificaciones. Acepta ambos. El estado cambia a <span class="ui">Escuchando</span>.</p>
+      </div></li>
+      <li class="step"><div class="step-body">
+        <h3>Ajusta y protege la app</h3>
+        <p>En Ajustes, toca <span class="ui">Evitar que el teléfono la cierre</span> y, si tu teléfono lo ofrece, pon la batería de la app en «Sin restricciones». Prueba diciendo la frase y ajusta volumen y precisión.</p>
+      </div></li>
+      <li class="step"><div class="step-body">
+        <h3>Deja el teléfono cerca</h3>
+        <p>Puedes bloquear la pantalla. Deja el teléfono donde la persona pasa más tiempo, cargando si es posible. Para apagar, usa el botón rojo o <span class="ui">Detener</span> en la notificación.</p>
+      </div></li>
+    </ol>
+    <div class="block-head" style="margin-top:40px">
+      <span class="eyebrow">Con dos teléfonos y Clara</span>
+      <h2>Para cuidar desde tu propio teléfono</h2>
+      <p class="lead">Instala la app en los dos teléfonos. Lo que preparas en el tuyo llega al de la persona por internet. Si ya la usas en un solo teléfono, en Ajustes está <span class="ui">Usar con un cuidador en otro teléfono</span>.</p>
+    </div>
+    <ol class="steps">
+      <li class="step"><div class="step-body">
+        <h3>En tu teléfono, «Soy el cuidador»</h3>
+        <p>Toca <span class="ui">Crear una cuenta</span> con tu correo y una contraseña. Luego toca <span class="ui">Añadir paciente</span> y escribe su nombre.</p>
+      </div></li>
+      <li class="step"><div class="step-body">
+        <h3>Prepara sus frases</h3>
+        <p>En su tarjeta, <span class="ui">Frases y ajustes</span> abre las mismas pantallas de un solo teléfono: sus frases, la agenda de visitas, los recordatorios y los ajustes.</p>
+      </div></li>
+      <li class="step"><div class="step-body">
+        <h3>Vincula su teléfono</h3>
+        <p>En su tarjeta toca <span class="ui">Vincular teléfono</span>. En el teléfono de la persona elige <span class="ui">Es para la persona que cuido</span>, toca <span class="ui">Leer el código QR</span> (o <span class="ui">Escribir el código</span>) y elige un PIN. Después toca <span class="ui">Empezar a escuchar</span>.</p>
+        <p class="tip"><b>El código vale 10 minutos</b> y sirve una sola vez. Si se vence, vuelve a tocar «Vincular teléfono».</p>
+      </div></li>
+      <li class="step"><div class="step-body">
+        <h3>Escribe la ficha y enciende a Clara</h3>
+        <p>En <span class="ui">Ficha</span> cuenta lo que quieras de la persona y prueba preguntas con <span class="ui">Probar una pregunta</span>. Luego, en <span class="ui">Asistente</span>, toca <span class="ui">Activar el asistente</span>, lee qué sale de su teléfono, acepta, elige la voz y toca <span class="ui">Guardar</span>.</p>
+      </div></li>
+      <li class="step"><div class="step-body">
+        <h3>Pruébalo en voz alta</h3>
+        <p>Frente a su teléfono, di una de sus frases: debe responder aunque el teléfono esté en modo avión. Después, con internet, di «Clara» y una pregunta. En <span class="ui">Asistente</span> verás lo que se oyó y lo que respondió.</p>
+      </div></li>
+    </ol>
+
+  </div>
+</section>
+
+<section class="block">
+  <div class="wrap">
+    <div class="block-head">
+      <span class="eyebrow">Ideas de uso</span>
+      <h2>Frases que suelen ayudar</h2>
+      <p class="lead">Son ejemplos para inspirarte. Usa las palabras que la persona dice de verdad.</p>
+    </div>
+    <div class="examples">
+      <div class="ex"><span class="k">Cuando pregunta por alguien</span><span class="phrase">«dónde está laura»</span><span class="sound">La grabación de Laura explicando dónde está y cuándo vuelve.</span></div>
+      <div class="ex"><span class="k">Cuando pregunta la hora</span><span class="phrase">«qué hora es»</span><span class="sound">Una voz: «Buenas tardes. Son las 4 y 10.»</span></div>
+      <div class="ex"><span class="k">Cuando pregunta por una visita</span><span class="phrase">«cuándo viene laura»</span><span class="sound">Una voz con la próxima visita de la agenda: «Laura viene el jueves a las 5 de la tarde.»</span></div>
+      <div class="ex"><span class="k">Cuando se desorienta</span><span class="phrase">«quiero ir a casa»</span><span class="sound">Una voz conocida recordando que ya está en casa y está segura.</span></div>
+      <div class="ex"><span class="k">Si se cae</span><span class="phrase">«me caí»</span><span class="sound">Pregunta «¿Necesitas ayuda?» y, si en 10 segundos no oye «estoy bien», manda un SMS a quien cuida.</span></div>
+      <div class="ex"><span class="k">Para llamar</span><span class="phrase">«llama a laura»</span><span class="sound">Dice «Llamando a Laura» y llama con el altavoz.</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="block" id="ayuda" style="padding-top:0">
+  <div class="wrap">
+    <div class="block-head">
+      <span class="eyebrow">Si algo falla</span>
+      <h2>Problemas comunes</h2>
+    </div>
+    <div class="faq">
+      <details open><summary>Dejó de sonar después de un rato</summary><p>En Xiaomi, Samsung, Huawei y otros, el sistema cierra apps en segundo plano. Toca <span class="ui">Evitar que el teléfono la cierre</span> en Ajustes y pon la batería de la app en «Sin restricciones».</p></details>
+      <details open><summary>Suena cuando nadie dijo la frase</summary><p>Las frases de una sola palabra corta se confunden con otras parecidas. Usa dos o tres palabras, o sube la <b>Precisión</b> hacia «Menos falsas alarmas».</p></details>
+      <details><summary>No reacciona durante una llamada</summary><p>Mientras hay una llamada, una nota de voz o una grabación, Android no le presta el micrófono a la app. Al terminar vuelve a escuchar sola; si no, detén y vuelve a empezar.</p></details>
+      <details><summary>Dice que no conoce una palabra</summary><p>Revisa la tilde o cambia por una palabra más común. Escribe los números con letras.</p></details>
+      <details><summary>Tarda en reaccionar</summary><p>Mueve la <b>Precisión</b> hacia «Reacciona más rápido» y acerca el teléfono a donde está la persona.</p></details>
+      <details open><summary>¿Clara funciona sin internet?</summary><p>No. Sin internet, o si tarda más de 6 segundos, el teléfono dice la frase de reserva con su propia voz. Las frases, las grabaciones y los recordatorios sí funcionan sin internet.</p></details>
+      <details><summary>Clara no responde</summary><p>Revisa que la persona diga su nombre al principio («Clara, ¿quién viene hoy?»), que su teléfono tenga internet y que no se haya llegado al máximo de respuestas del día: la tarjeta de la persona lo avisa. En <span class="ui">Asistente</span> verás qué se oyó.</p></details>
+      <details><summary>¿Por qué hay una notificación fija?</summary><p>Android la exige a cualquier app que use el micrófono en segundo plano. Así siempre sabes que está escuchando, y desde ahí puedes detenerla.</p></details>
+    </div>
+  </div>
+</section>
+
+<section class="block" style="padding-top:0">
+  <div class="wrap">
+    <div class="privacy">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6l-8-3z"/><path d="m9 12 2 2 4-4"/></svg>
+      <div>
+        <h3>Privado por diseño</h3>
+        <p>Lo que oye el micrófono se procesa dentro del teléfono y no se graba. Para reconocer tus frases no hace falta internet: solo se usa una vez, para descargar el reconocimiento de voz.</p>
+        <p style="margin-top:10px">Con dos teléfonos, la cuenta de quien cuida guarda en la nube de Google (Firebase) lo que hace falta para que todo llegue a su teléfono: tu correo, su nombre, sus frases, grabaciones, agenda, recordatorios y contactos de aviso. Si enciendes a Clara, cada vez que la persona le habla salen de su teléfono el texto de lo que dijo, la ficha, la hora, sus próximas visitas y las tomas de hoy, hacia Anthropic y ElevenLabs. El audio nunca sale.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="block" id="descargar" style="padding-top:0">
+  <div class="wrap">
+    <div class="download">
+      <div class="download-copy">
+        <span class="eyebrow">Descargar</span>
+        <h2>Pruébala en tu teléfono</h2>
+        <p>Abre esta página desde el teléfono Android y toca el botón. Es un archivo de unos 41 MB; después sigue el <a href="#pasos">paso a paso</a>.</p>
+      </div>
+      <div class="download-action">
+        <a class="btn primary big" href="Earcaster.apk" download>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m0 0-5-5m5 5 5-5M5 21h14"/></svg>
+          Descargar Earcaster.apk
+        </a>
+        <span class="download-meta">Versión 1.8 · Android 8 o superior · gratis · en español e inglés</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">Earcaster · versión 1.8 · Android 8 o superior · Reconoce la voz dentro del teléfono (Vosk), sin conexión · Clara usa internet: Claude, de Anthropic, y voces de ElevenLabs.</div>
+</footer>
+
+</div>
+
+<div data-lang="en">
+
+<section class="hero">
+  <div class="wrap">
+    <div class="hero-copy">
+      <span class="eyebrow">Android app · phrases without internet · AI assistant</span>
+      <h1>When it hears a phrase, <em>it answers with a familiar voice.</em></h1>
+      <p class="lead">Earcaster keeps the phone listening in the background. When someone says one of the phrases you prepared, it answers with what you assigned to it: a recording of a family member, a voice that tells the time, or an action, and all of that works without internet. For what no one anticipated there is Grace, an assistant with artificial intelligence that does use internet. Made to support older people or people with Alzheimer's, and those who care for them.</p>
+      <div class="scene" aria-label="Example of use">
+        <span class="scene-label">EXAMPLE</span>
+        <div class="bubble said"><small>Grandma says</small>“Where is Laura?”</div>
+        <div class="bubble plays"><small>Earcaster plays Laura's voice</small>“Mom, I'm at work. I'll be back at six, don't worry.”</div>
+      </div>
+      <div class="cta-row">
+        <a class="btn primary" href="Earcaster.apk" download>Download for Android</a>
+        <a class="btn ghost" href="#steps">See the step by step</a>
+      </div>
+    </div>
+    <div>
+      <div class="phone">
+        <img src="img/en/escuchando.webp" alt="Earcaster screen while listening, with the phrases “where is laura” and “hello”">
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="block video-sec" id="watch" style="padding-top:8px">
+  <div class="wrap">
+    <div class="video-frame">
+      <video src="earcaster-promo-en.mp4" poster="earcaster-promo-en.jpg" controls playsinline preload="none" aria-label="Earcaster video: Rose asks about her daughter, her phone answers with Lucy's recording, and Grace answers what no one anticipated"></video>
+    </div>
+    <div class="video-copy">
+      <span class="eyebrow">Watch it in just over a minute</span>
+      <h2>This is how Earcaster works</h2>
+      <p>Rose asks several times a day where her daughter is. Her phone recognizes the question and answers with Lucy's recorded voice, even without internet.</p>
+      <p>When she asks something no one prepared, Grace answers: the assistant with artificial intelligence. Grace does need internet, and she answers with what Lucy wrote about her mom.</p>
+      <p>You can also <a href="https://www.youtube.com/watch?v=cXlCqLBd-xg" target="_blank" rel="noopener">watch it on YouTube</a>.</p>
+    </div>
+  </div>
+</section>
+
+<section class="band" id="how">
+  <div class="wrap">
+    <div class="block-head" style="margin-bottom:0">
+      <span class="eyebrow">How it works</span>
+      <h2>Three things happen inside the phone</h2>
+      <p class="lead">You don't need to know about technology. The app only needs to know which phrase to expect and what to answer.</p>
+    </div>
+    <div class="flow" aria-hidden="true">
+      <span class="node">Someone speaks</span><span class="arrow">→</span>
+      <span class="node">The phone recognizes the phrase</span><span class="arrow">→</span>
+      <span class="node">The answer plays</span>
+    </div>
+    <div class="ideas">
+      <div class="idea">
+        <div class="idea-icon"><svg viewBox="0 0 24 24"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><path d="M12 19v3"/></svg></div>
+        <h3>1. It listens all the time</h3>
+        <p>When you tap the microphone, the app stays alert even if you leave it or lock the screen. You'll see a fixed notification while it listens.</p>
+      </div>
+      <div class="idea">
+        <div class="idea-icon"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h10M4 17h7"/><path d="m15 17 2 2 4-4"/></svg></div>
+        <h3>2. It recognizes your phrases</h3>
+        <p>A speech recognition AI for English or Spanish works inside the phone and compares what it hears with your phrases. It doesn't use internet for this or send anything.</p>
+      </div>
+      <div class="idea">
+        <div class="idea-icon"><svg viewBox="0 0 24 24"><path d="M11 5 6 9H2v6h4l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/></svg></div>
+        <h3>3. It answers</h3>
+        <p>When it hears the phrase, it plays its answer: a recording or a sound, a voice that tells the time, the day or the next visit, or an action such as calling someone.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="block" id="two-phones">
+  <div class="wrap">
+    <div class="block-head">
+      <span class="eyebrow">New in version 1.8</span>
+      <h2>With two phones: one listens and the other sets it up</h2>
+      <p class="lead">The caregiver manages everything from their own phone, even from far away: the phrases, the visit schedule, the reminders and the profile. The person's phone only listens and answers. These screens are recreated from version 1.8.</p>
+    </div>
+    <div class="tour">
+
+      <article class="screen">
+        <div class="phone-col">
+          <div class="phone">
+            <img src="img/en/bienvenida.webp" alt="Welcome screen: Who is going to use this phone?, with the buttons I am the caregiver, It is for the person I care for and Use on a single phone, without an account">
+            <span class="pin" style="left:8%;top:41.2%">1</span>
+            <span class="pin" style="left:8%;top:57.8%">2</span>
+            <span class="pin" style="left:15%;top:73.2%">3</span>
+          </div>
+        </div>
+        <div class="screen-copy">
+          <span class="eyebrow">When you open the app</span>
+          <h3>Who is going to use this phone?</h3>
+          <p>The first time, the app asks who it is for.</p>
+          <ol class="legend">
+            <li><span class="n">1</span><span><b>I am the caregiver.</b> You sign in with your email and a password, and add the people you care for. Before creating the account, the app explains what is stored in the cloud.</span></li>
+            <li><span class="n">2</span><span><b>It is for the person I care for.</b> The phone only listens and answers. It is linked once with the caregiver's code, without an account or password.</span></li>
+            <li><span class="n">3</span><span><b>Use on a single phone, without an account.</b> As in earlier versions: everything is set up and listens on the same phone. Grace is not available in this mode.</span></li>
+          </ol>
+        </div>
+      </article>
+
+      <article class="screen">
+        <div class="phone-col">
+          <div class="phone">
+            <img src="img/en/mis-pacientes.webp" alt="My patients screen with Rose's card and its buttons Phrases and settings, Profile, Link phone and Assistant">
+            <span class="pin" style="left:72%;top:16.7%">1</span>
+            <span class="pin" style="left:4.5%;top:21.5%">2</span>
+            <span class="pin" style="left:53%;top:21.5%">3</span>
+            <span class="pin" style="left:4.5%;top:27.2%">4</span>
+            <span class="pin" style="left:47%;top:27.2%">5</span>
+            <span class="pin" style="left:52%;top:94.4%">6</span>
+          </div>
+        </div>
+        <div class="screen-copy">
+          <span class="eyebrow">The caregiver's phone</span>
+          <h3>My patients</h3>
+          <p>Each person has their own card. What you change reaches their phone as soon as it has internet, and their phrases keep working even when it doesn't.</p>
+          <ol class="legend">
+            <li><span class="n">1</span><span><b>Status.</b> Tells you whether their phone is listening, or since when it stopped. If they asked for help, it shows here too.</span></li>
+            <li><span class="n">2</span><span><b>Phrases and settings.</b> Their phrases, the visit schedule, the reminders and the settings. They are the same screens as on a single phone.</span></li>
+            <li><span class="n">3</span><span><b>Profile.</b> What Grace knows about the person: their family, their routine and what calms them.</span></li>
+            <li><span class="n">4</span><span><b>Link phone.</b> Shows a QR code and an 8-character code of letters and numbers to link their phone.</span></li>
+            <li><span class="n">5</span><span><b>Assistant.</b> Turns Grace on, picks her voice and lets you review the conversations.</span></li>
+            <li><span class="n">6</span><span><b>Add patient.</b> You can care for several people from the same account.</span></li>
+          </ol>
+        </div>
+      </article>
+
+      <article class="screen">
+        <div class="phone-col">
+          <div class="phone">
+            <img src="img/en/telefono-persona.webp" alt="The person's phone: the time 15:30, Tuesday, October 20, 2026 and the status I am listening to you">
+            <span class="pin" style="left:13%;top:37.7%">1</span>
+            <span class="pin" style="left:7%;top:64.2%">2</span>
+          </div>
+        </div>
+        <div class="screen-copy">
+          <span class="eyebrow">The person's phone</span>
+          <h3>Large and with nothing confusing</h3>
+          <p>After linking it and tapping <span class="ui">Start listening</span>, the phone looks like this.</p>
+          <ol class="legend">
+            <li><span class="n">1</span><span><b>Time, day and date.</b> Always in view, in large type.</span></li>
+            <li><span class="n">2</span><span><b>Status.</b> It says <span class="ui">I am listening to you</span>. When it answers, it shows the phrase it recognized in quotes and a red <span class="ui">Stop</span> button.</span></li>
+          </ol>
+          <p>To leave this screen, press and hold the top right corner for 3 seconds and type the PIN chosen when linking.</p>
+        </div>
+      </article>
+
+    </div>
+  </div>
+</section>
+
+<section class="block" id="grace" style="padding-top:0">
+  <div class="wrap">
+    <div class="ai">
+      <div class="ai-copy">
+        <span class="eyebrow">Artificial intelligence</span>
+        <h2>Two artificial intelligences, each with its own job</h2>
+        <p><b>The one that recognizes speech works inside the phone, without internet.</b> It is a speech recognition model (Vosk) for English or Spanish, following the app's language. The app downloads it the first time, about 40 MB, and from then on turns what it hears into words. Earcaster answers only when all the words of one of your phrases appear in a row, with enough confidence.</p>
+        <p><b>Grace answers what is not in the phrases, and she needs internet.</b> She is an assistant you turn on from caregiver mode. She writes the answer with Claude, by Anthropic, from what you wrote in the profile and the schedule, and says it with a natural ElevenLabs voice.</p>
+      </div>
+      <ul class="ai-list">
+        <li><b>The phrases answer first</b><span>If what it hears is one of your phrases, the phrase answers, without internet and always the same way. Grace only answers the rest.</span></li>
+        <li><b>Only when they say her name</b><span>“Grace, is Anna coming today?” If it only hears “Grace”, she answers “Yes?” and waits for the question. That way she doesn't answer the TV.</span></li>
+        <li><b>Without internet, a fallback phrase</b><span>If there is no connection or the answer takes more than 6 seconds, the phone says the fallback phrase in its own voice. If it takes more than 2, a soft tone plays while it waits.</span></li>
+        <li><b>With clear limits</b><span>She has a maximum number of answers per day (50, unless you change it). Once reached, only the phrases answer until the next day. It is not a medical or emergency service.</span></li>
+      </ul>
+    </div>
+    <div class="tour" style="margin-top:72px">
+
+      <article class="screen">
+        <div class="phone-col">
+          <div class="phone">
+            <img src="img/en/asistente.webp" alt="Rose's Assistant screen: Turn on the assistant, Assistant's name, Voice, Fallback phrase, Maximum answers per day and an example conversation">
+            <span class="pin" style="left:76%;top:19.6%">1</span>
+            <span class="pin" style="left:90%;top:27.2%">2</span>
+            <span class="pin" style="left:65%;top:35.3%">3</span>
+            <span class="pin" style="left:45%;top:40.9%">4</span>
+            <span class="pin" style="left:90%;top:51.7%">5</span>
+            <span class="pin" style="left:92%;top:79%">6</span>
+          </div>
+        </div>
+        <div class="screen-copy">
+          <span class="eyebrow">Assistant</span>
+          <h3>Grace is turned on here</h3>
+          <p>With the <span class="ui">Assistant</span> button on the person's card, on the caregiver's phone.</p>
+          <ol class="legend">
+            <li><span class="n">1</span><span><b>Turn on the assistant.</b> When you turn it on, the app explains what leaves the person's phone and asks you to accept it.</span></li>
+            <li><span class="n">2</span><span><b>Name.</b> Grace, or whichever you prefer. Pick one that no one in the family has.</span></li>
+            <li><span class="n">3</span><span><b>Voice.</b> Unless you pick another, she speaks with Grace's voice from the video. You hear a sample of each voice before choosing.</span></li>
+            <li><span class="n">4</span><span><b>Fallback phrase.</b> What the phone says when Grace can't answer, for example when there is no internet.</span></li>
+            <li><span class="n">5</span><span><b>Maximum answers per day.</b> Once reached, only their phrases answer until the next day.</span></li>
+            <li><span class="n">6</span><span><b>Conversations from the last 7 days.</b> What was heard and what she answered, as text. They are deleted automatically.</span></li>
+          </ol>
+        </div>
+      </article>
+
+      <article class="screen">
+        <div class="phone-col">
+          <div class="phone">
+            <img src="img/en/ficha.webp" alt="Rose's profile with the fields Name, What they like to be called, Where and who they live with, Family and close people, Their daily routine and What they like and what calms them">
+            <span class="pin" style="left:93%;top:42.9%">1</span>
+            <span class="pin" style="left:93%;top:56%">2</span>
+            <span class="pin" style="left:93%;top:69.1%">3</span>
+          </div>
+        </div>
+        <div class="screen-copy">
+          <span class="eyebrow">Profile</span>
+          <h3>What Grace knows about the person</h3>
+          <p>Everything is optional. There is no need to include diagnoses or medications with doses.</p>
+          <ol class="legend">
+            <li><span class="n">1</span><span><b>Family and close people.</b> Who is who, so she can say “Lucy, your daughter, is coming at five”.</span></li>
+            <li><span class="n">2</span><span><b>Their daily routine.</b> To answer according to the time of day: breakfast, lunch, the afternoon nap.</span></li>
+            <li><span class="n">3</span><span><b>What they like and what calms them.</b> To change the subject kindly. Further down there is a field for sensitive topics and how to answer them.</span></li>
+          </ol>
+          <p>At the end of the profile, <span class="ui">Try a question</span> shows what Grace would answer, without it playing on the person's phone.</p>
+        </div>
+      </article>
+
+    </div>
+  </div>
+</section>
+
+<section class="block" id="inside">
+  <div class="wrap">
+    <div class="block-head">
+      <span class="eyebrow">Inside the app</span>
+      <h2>What's on each screen</h2>
+      <p class="lead">This is how the phrases are prepared, on a single phone or inside <span class="ui">Phrases and settings</span>. The numbers on each screenshot match the explanation beside it. The screenshots are from version 1.6; in 1.8 the editor adds <span class="ui">Responds with</span>, so the phrase can answer with a sound, a voice or an action.</p>
+    </div>
+    <div class="tour">
+
+      <article class="screen">
+        <div class="phone-col">
+          <div class="phone">
+            <img src="img/en/inicio.webp" alt="Earcaster main screen, paused">
+            <span class="pin" style="left:78%;top:5.6%">1</span>
+            <span class="pin" style="left:50%;top:24.4%">2</span>
+            <span class="pin" style="left:20%;top:38.5%">3</span>
+            <span class="pin" style="left:14%;top:60.4%">4</span>
+            <span class="pin" style="left:54%;top:91.4%">5</span>
+          </div>
+        </div>
+        <div class="screen-copy">
+          <span class="eyebrow">Main screen</span>
+          <h3>Everything starts here</h3>
+          <p>It is the first thing you see when you open the app. From here you turn on listening and see your phrases.</p>
+          <ol class="legend">
+            <li><span class="n">1</span><span><b>Settings.</b> Opens volume, precision and the option to keep the phone from closing the app.</span></li>
+            <li><span class="n">2</span><span><b>Microphone button.</b> Tap it to start listening. Tap it again to stop.</span></li>
+            <li><span class="n">3</span><span><b>Status.</b> Says whether the app is <span class="ui">Paused</span> or <span class="ui">Listening</span>. The first time, it warns that it will download speech recognition (about 40 MB).</span></li>
+            <li><span class="n">4</span><span><b>Your phrases.</b> Each card shows the phrase and its sound. The ▶ button plays it; tapping the card opens it for editing.</span></li>
+            <li><span class="n">5</span><span><b>New phrase.</b> Creates another phrase with its own sound.</span></li>
+          </ol>
+        </div>
+      </article>
+
+      <article class="screen">
+        <div class="phone-col">
+          <div class="phone">
+            <img src="img/en/editor.webp" alt="Editor for a new phrase with the word hello">
+            <span class="pin" style="left:30%;top:41.4%">1</span>
+            <span class="pin" style="left:88%;top:41.4%">2</span>
+            <span class="pin" style="left:15%;top:59.9%">3</span>
+            <span class="pin" style="left:33.6%;top:68.5%">4</span>
+            <span class="pin" style="left:5%;top:80.4%">5</span>
+            <span class="pin" style="left:30%;top:93.9%">6</span>
+          </div>
+        </div>
+        <div class="screen-copy">
+          <span class="eyebrow">Phrase editor</span>
+          <h3>What is said and what plays</h3>
+          <p>It slides up when you tap <span class="ui">New phrase</span> or an existing phrase.</p>
+          <ol class="legend">
+            <li><span class="n">1</span><span><b>The phrase.</b> Type the word or phrase that triggers the sound. You can add several forms separated by commas: “laura, where is laura”.</span></li>
+            <li><span class="n">2</span><span><b>Dictate.</b> The microphone in the field lets you say the phrase out loud instead of typing it.</span></li>
+            <li><span class="n">3</span><span><b>Chosen sound.</b> Shows what will play. Press ▶ to hear it.</span></li>
+            <li><span class="n">4</span><span><b>Three ways to choose a sound.</b> <span class="ui">Record</span> your voice or a family member's (up to 30 seconds), the phone's <span class="ui">Tones</span>, or an audio <span class="ui">File</span> (mp3, ogg, wav…).</span></li>
+            <li><span class="n">5</span><span><b>Part that plays.</b> Drag the ends to trim the audio and keep only what you want.</span></li>
+            <li><span class="n">6</span><span><b>Done.</b> Saves the phrase. The trash icon, at the top right, deletes it.</span></li>
+          </ol>
+        </div>
+      </article>
+
+      <article class="screen">
+        <div class="phone-col">
+          <div class="phone">
+            <img src="img/en/dictado.webp" alt="Say the phrase window, to dictate with your voice">
+            <span class="pin" style="left:50%;top:43.1%">1</span>
+            <span class="pin" style="left:10%;top:66.6%">2</span>
+            <span class="pin" style="left:91%;top:66.6%">3</span>
+          </div>
+        </div>
+        <div class="screen-copy">
+          <span class="eyebrow">Dictate the phrase</span>
+          <h3>Say it out loud</h3>
+          <p>Useful if typing on the phone is hard, or to check how the app understands that phrase. It uses the same recognition, without internet.</p>
+          <ol class="legend">
+            <li><span class="n">1</span><span><b>It listens to you.</b> Say the phrase naturally. What it understood appears below.</span></li>
+            <li><span class="n">2</span><span><b>Repeat.</b> If it didn't understand well, try again.</span></li>
+            <li><span class="n">3</span><span><b>Add.</b> Puts what it understood in the phrase field.</span></li>
+          </ol>
+        </div>
+      </article>
+
+      <article class="screen">
+        <div class="phone-col">
+          <div class="phone">
+            <img src="img/en/editor-grabacion.webp" alt="Editor with a 6-second recording of your own, trimmed">
+            <span class="pin" style="left:41%;top:59%">1</span>
+            <span class="pin" style="left:56%;top:75.9%">2</span>
+          </div>
+        </div>
+        <div class="screen-copy">
+          <span class="eyebrow">With a recording</span>
+          <h3>The family's voice</h3>
+          <p>This is how it looks after recording with <span class="ui">Record</span>. It is the option that helps a person with Alzheimer's the most: hearing a loved voice instead of a beep.</p>
+          <ol class="legend">
+            <li><span class="n">1</span><span><b>My recording.</b> The name shows how long the full recording is, and below it how long the part that will play is.</span></li>
+            <li><span class="n">2</span><span><b>Trim times.</b> They show from and to which second it plays. They move a tenth of a second at a time as you drag the ends.</span></li>
+          </ol>
+        </div>
+      </article>
+
+      <article class="screen">
+        <div class="phone-col">
+          <div class="phone">
+            <img src="img/en/ajustes.webp" alt="Settings sheet with volume, precision and the Keep the phone from closing it button">
+            <span class="pin" style="left:50%;top:60%">1</span>
+            <span class="pin" style="left:58%;top:70%">2</span>
+            <span class="pin" style="left:12%;top:86.3%">3</span>
+          </div>
+        </div>
+        <div class="screen-copy">
+          <span class="eyebrow">Settings</span>
+          <h3>Volume, precision and battery</h3>
+          <p>They open with the controls icon at the top right.</p>
+          <ol class="legend">
+            <li><span class="n">1</span><span><b>Sound volume.</b> How loud it plays when it recognizes a phrase.</span></li>
+            <li><span class="n">2</span><span><b>Precision.</b> To the left, <span class="ui">Reacts faster</span>; to the right, <span class="ui">Fewer false alarms</span>. If it plays without anyone saying the phrase, move it up.</span></li>
+            <li><span class="n">3</span><span><b>Keep the phone from closing it.</b> Asks Android not to stop the app to save battery. Highly recommended.</span></li>
+          </ol>
+          <p>The app's language is also chosen in Settings. By default it follows the phone's language.</p>
+        </div>
+      </article>
+
+      <article class="screen">
+        <div class="phone-col">
+          <div class="phone">
+            <img src="img/en/escuchando.webp" alt="Main screen listening for the phrases “where is laura” and “hello”">
+            <span class="pin" style="left:50%;top:24.4%">1</span>
+            <span class="pin" style="left:22%;top:41.7%">2</span>
+          </div>
+        </div>
+        <div class="screen-copy">
+          <span class="eyebrow">Listening</span>
+          <h3>Now it's working</h3>
+          <p>With listening on, you can leave the app or lock the screen.</p>
+          <ol class="legend">
+            <li><span class="n">1</span><span><b>Red stop button.</b> Turns listening off. You can also stop it from the notification.</span></li>
+            <li><span class="n">2</span><span><b>Active phrases.</b> The list of phrases the app is waiting to hear.</span></li>
+          </ol>
+        </div>
+      </article>
+
+    </div>
+  </div>
+</section>
+
+<section class="block steps-sec" id="steps">
+  <div class="wrap">
+    <div class="block-head">
+      <span class="eyebrow">Step by step</span>
+      <h2>From zero to working in ten minutes</h2>
+      <p class="lead">This is how to set it up on a single phone. Follow the steps in order the first time; after that you only need step 8 to turn it on or off. To use two phones and Grace, also follow the steps further below.</p>
+    </div>
+    <ol class="steps">
+      <li class="step"><div class="step-body">
+        <h3>Install the app</h3>
+        <p><a href="Earcaster.apk" download>Download Earcaster.apk</a> on the phone and open it (Android 8 or later). If Android asks, allow “install unknown apps”. If Play Protect warns that it doesn't recognize it, choose <span class="ui">Install anyway</span>: this is normal for apps that don't come from the Play Store.</p>
+      </div></li>
+      <li class="step"><div class="step-body">
+        <h3>Choose “Use on a single phone”</h3>
+        <p>The first time, the app asks who is going to use the phone. To start with the simplest option, tap <span class="ui">Use on a single phone, without an account</span>. The app follows the phone's language; you can change it on this screen or later in Settings.</p>
+      </div></li>
+      <li class="step"><div class="step-body">
+        <h3>Tap “New phrase”</h3>
+        <p>On the main screen, at the bottom right. The editor opens.</p>
+      </div></li>
+      <li class="step"><div class="step-body">
+        <h3>Type or dictate the phrase</h3>
+        <p>Type what the person usually says, or tap the microphone in the field to dictate it. If it is said in several ways, separate them with commas.</p>
+        <p class="tip"><b>Tip:</b> write numbers as words (“five”, not “5”). Phrases of two or three words are recognized better than a single short word.</p>
+      </div></li>
+      <li class="step"><div class="step-body">
+        <h3>Choose what it answers</h3>
+        <p>In <span class="ui">Responds with</span> choose <span class="ui">A sound</span> and tap <span class="ui">Record</span> so the family member can say their message, or pick one in <span class="ui">Tones</span> or <span class="ui">File</span>. Press ▶ to hear it.</p>
+        <p>You can also choose <span class="ui">A voice</span>, which reads a text with the time, the day or the next visit, or <span class="ui">An action</span>, such as calling a contact or alerting that they need help.</p>
+        <p class="tip"><b>For caregivers:</b> a short, calm message with the person's name (“Mom, it's Laura…”) usually works better than a long one.</p>
+      </div></li>
+      <li class="step"><div class="step-body">
+        <h3>Trim if needed</h3>
+        <p>In <span class="ui">Part that plays</span>, drag the ends to remove silence or noise at the beginning and end. Press ▶ to hear the result.</p>
+      </div></li>
+      <li class="step"><div class="step-body">
+        <h3>Tap “Done”</h3>
+        <p>The phrase appears in <span class="ui">Your phrases</span>. Repeat steps 3 to 7 for each phrase you want.</p>
+      </div></li>
+      <li class="step"><div class="step-body">
+        <h3>Tap the big microphone</h3>
+        <p>The first time, it downloads speech recognition in the app's language (about 40 MB, only once) and asks for permission to use the microphone and show notifications. Accept both. The status changes to <span class="ui">Listening</span>.</p>
+      </div></li>
+      <li class="step"><div class="step-body">
+        <h3>Adjust and protect the app</h3>
+        <p>In Settings, tap <span class="ui">Keep the phone from closing it</span> and, if your phone offers it, set the app's battery to “Unrestricted”. Test it by saying the phrase and adjust volume and precision.</p>
+      </div></li>
+      <li class="step"><div class="step-body">
+        <h3>Leave the phone nearby</h3>
+        <p>You can lock the screen. Leave the phone where the person spends the most time, charging if possible. To turn it off, use the red button or <span class="ui">Stop</span> in the notification.</p>
+      </div></li>
+    </ol>
+    <div class="block-head" style="margin-top:40px">
+      <span class="eyebrow">With two phones and Grace</span>
+      <h2>To care from your own phone</h2>
+      <p class="lead">Install the app on both phones. What you prepare on yours reaches the person's phone over the internet. If you already use it on a single phone, Settings has <span class="ui">Use with a caregiver on another phone</span>.</p>
+    </div>
+    <ol class="steps">
+      <li class="step"><div class="step-body">
+        <h3>On your phone, “I am the caregiver”</h3>
+        <p>Tap <span class="ui">Create an account</span> with your email and a password. Then tap <span class="ui">Add patient</span> and type their name.</p>
+      </div></li>
+      <li class="step"><div class="step-body">
+        <h3>Prepare their phrases</h3>
+        <p>On their card, <span class="ui">Phrases and settings</span> opens the same screens as on a single phone: their phrases, the visit schedule, the reminders and the settings.</p>
+      </div></li>
+      <li class="step"><div class="step-body">
+        <h3>Link their phone</h3>
+        <p>On their card, tap <span class="ui">Link phone</span>. On the person's phone choose <span class="ui">It is for the person I care for</span>, tap <span class="ui">Scan the QR code</span> (or <span class="ui">Type the code</span>) and choose a PIN. Then tap <span class="ui">Start listening</span>.</p>
+        <p class="tip"><b>The code is valid for 10 minutes</b> and works only once. If it expires, tap “Link phone” again.</p>
+      </div></li>
+      <li class="step"><div class="step-body">
+        <h3>Write the profile and turn on Grace</h3>
+        <p>In <span class="ui">Profile</span>, tell whatever you want about the person and test questions with <span class="ui">Try a question</span>. Then, in <span class="ui">Assistant</span>, tap <span class="ui">Turn on the assistant</span>, read what leaves their phone, accept, choose the voice and tap <span class="ui">Save</span>.</p>
+      </div></li>
+      <li class="step"><div class="step-body">
+        <h3>Try it out loud</h3>
+        <p>In front of their phone, say one of their phrases: it should answer even with the phone in airplane mode. Then, with internet, say “Grace” and a question. In <span class="ui">Assistant</span> you'll see what was heard and what she answered.</p>
+      </div></li>
+    </ol>
+
+  </div>
+</section>
+
+<section class="block">
+  <div class="wrap">
+    <div class="block-head">
+      <span class="eyebrow">Ideas for use</span>
+      <h2>Phrases that often help</h2>
+      <p class="lead">These are examples to inspire you. Use the words the person actually says.</p>
+    </div>
+    <div class="examples">
+      <div class="ex"><span class="k">When they ask about someone</span><span class="phrase">“where is laura”</span><span class="sound">Laura's recording explaining where she is and when she'll be back.</span></div>
+      <div class="ex"><span class="k">When they ask the time</span><span class="phrase">“what time is it”</span><span class="sound">A voice: “Good afternoon. It's ten past four.”</span></div>
+      <div class="ex"><span class="k">When they ask about a visit</span><span class="phrase">“when is laura coming”</span><span class="sound">A voice with the next visit from the schedule: “Laura is coming on Thursday at 5 in the afternoon.”</span></div>
+      <div class="ex"><span class="k">When they feel disoriented</span><span class="phrase">“i want to go home”</span><span class="sound">A familiar voice reminding them that they are already home and safe.</span></div>
+      <div class="ex"><span class="k">If they fall</span><span class="phrase">“i fell”</span><span class="sound">It asks “Do you need help?” and, if it doesn't hear “I am fine” within 10 seconds, it sends a text message to the caregiver.</span></div>
+      <div class="ex"><span class="k">To make a call</span><span class="phrase">“call laura”</span><span class="sound">It says “Calling Laura” and calls on speakerphone.</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="block" id="help" style="padding-top:0">
+  <div class="wrap">
+    <div class="block-head">
+      <span class="eyebrow">Troubleshooting</span>
+      <h2>Common problems</h2>
+    </div>
+    <div class="faq">
+      <details open><summary>It stopped playing after a while</summary><p>On Xiaomi, Samsung, Huawei and others, the system closes apps in the background. Tap <span class="ui">Keep the phone from closing it</span> in Settings and set the app's battery to “Unrestricted”.</p></details>
+      <details open><summary>It plays when no one said the phrase</summary><p>Phrases of a single short word get confused with similar ones. Use two or three words, or move <b>Precision</b> toward “Fewer false alarms”.</p></details>
+      <details><summary>It doesn't react during a call</summary><p>During a call, a voice note or a recording, Android doesn't lend the microphone to the app. When it ends, it starts listening again on its own; if not, stop and start again.</p></details>
+      <details><summary>It says it doesn't know a word</summary><p>Check the spelling or use a more common word. Write numbers as words.</p></details>
+      <details><summary>It is slow to react</summary><p>Move <b>Precision</b> toward “Reacts faster” and bring the phone closer to where the person is.</p></details>
+      <details open><summary>Does Grace work without internet?</summary><p>No. Without internet, or if she takes more than 6 seconds, the phone says the fallback phrase in its own voice. The phrases, recordings and reminders do work without internet.</p></details>
+      <details><summary>Grace doesn't answer</summary><p>Check that the person says her name first (“Grace, who is coming today?”), that their phone has internet, and that the day's maximum number of answers hasn't been reached: the person's card shows a notice. In <span class="ui">Assistant</span> you'll see what was heard.</p></details>
+      <details><summary>Why is there a fixed notification?</summary><p>Android requires it for any app that uses the microphone in the background. That way you always know it is listening, and you can stop it from there.</p></details>
+    </div>
+  </div>
+</section>
+
+<section class="block" style="padding-top:0">
+  <div class="wrap">
+    <div class="privacy">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6l-8-3z"/><path d="m9 12 2 2 4-4"/></svg>
+      <div>
+        <h3>Private by design</h3>
+        <p>What the microphone hears is processed inside the phone and is not recorded. Recognizing your phrases doesn't need internet: it is used only once, to download speech recognition.</p>
+        <p style="margin-top:10px">With two phones, the caregiver's account stores in Google's cloud (Firebase) what is needed for everything to reach the person's phone: your email, their name, their phrases, recordings, schedule, reminders and alert contacts. If you turn Grace on, each time the person speaks to her, the text of what they said, the profile, the time, their upcoming visits and today's doses leave their phone, to Anthropic and ElevenLabs. The audio never leaves.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="block" id="download" style="padding-top:0">
+  <div class="wrap">
+    <div class="download">
+      <div class="download-copy">
+        <span class="eyebrow">Download</span>
+        <h2>Try it on your phone</h2>
+        <p>Open this page on the Android phone and tap the button. It is a file of about 41 MB; then follow the <a href="#steps">step by step</a>.</p>
+      </div>
+      <div class="download-action">
+        <a class="btn primary big" href="Earcaster.apk" download>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m0 0-5-5m5 5 5-5M5 21h14"/></svg>
+          Download Earcaster.apk
+        </a>
+        <span class="download-meta">Version 1.8 · Android 8 or later · free · English and Spanish</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">Earcaster · version 1.8 · Android 8 or later · Recognizes speech inside the phone (Vosk), offline · Grace uses internet: Claude, by Anthropic, and ElevenLabs voices.</div>
+</footer>
+
+</div>
+
+<script>
+// Language switch: swaps title and description, keeps the choice, and maps section links between languages
+(function () {
+  var root = document.documentElement;
+  var meta = {
+    es: { title: "Earcaster · responde con una voz conocida", desc: document.querySelector('meta[name="description"]').content },
+    en: { title: "Earcaster · answers with a familiar voice", desc: "Earcaster is an Android app that listens in the background and, when it hears a phrase, answers with a family member's recording, a voice that tells the time, or an action, without internet. With two phones, the caregiver sets it up from afar and can turn on Grace, an AI assistant that uses internet." }
+  };
+  var anchors = [["video", "watch"], ["como", "how"], ["dos", "two-phones"], ["ia", "grace"], ["pantallas", "inside"], ["pasos", "steps"], ["ayuda", "help"], ["descargar", "download"]];
+  function apply(lang, fromUser) {
+    root.lang = lang;
+    document.title = meta[lang].title;
+    document.querySelector('meta[name="description"]').content = meta[lang].desc;
+    document.querySelectorAll("[data-set-lang]").forEach(function (b) {
+      b.setAttribute("aria-pressed", String(b.getAttribute("data-set-lang") === lang));
+    });
+    document.querySelectorAll("video").forEach(function (v) { if (!v.paused) v.pause(); });
+    var hash = location.hash.slice(1);
+    anchors.forEach(function (pair) {
+      var from = pair[lang === "en" ? 0 : 1], to = pair[lang === "en" ? 1 : 0];
+      if (hash === from) { history.replaceState(null, "", "#" + to); if (fromUser) document.getElementById(to).scrollIntoView(); }
+    });
+    if (fromUser) { try { localStorage.setItem("earcaster-lang", lang); } catch (e) {} }
+  }
+  document.querySelectorAll("[data-set-lang]").forEach(function (b) {
+    b.addEventListener("click", function () { apply(b.getAttribute("data-set-lang"), true); });
+  });
+  apply(root.lang === "en" ? "en" : "es", false);
+  // Images have no size until they load, so jump to the (possibly remapped) section afterwards
+  window.addEventListener("load", function () {
+    var t = location.hash && document.getElementById(location.hash.slice(1));
+    if (t) t.scrollIntoView();
+  });
+})();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,5 @@
+plugins {
+    id 'com.android.application' version '8.7.3' apply false
+    // Firebase (spec 015): only applied in app/ if google-services.json exists
+    id 'com.google.gms.google-services' version '4.4.2' apply false
+}

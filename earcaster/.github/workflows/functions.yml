@@ -1,0 +1,90 @@
+name: Función de IA
+
+on:
+  push:
+    paths:
+      - 'functions/**'
+      - 'firebase/**'
+      - 'firebase.json'
+      - '.github/workflows/functions.yml'
+      - '.github/ai_smoke.py'
+      - '.github/deploy_check.js'
+      - '.github/function_logs.js'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  probar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: functions/package-lock.json
+
+      - name: Probar
+        working-directory: functions
+        run: |
+          npm ci
+          npm test
+
+  desplegar:
+    # Deploys the function and the rules to Firebase (spec 017). Needs the Blaze plan and the
+    # FIREBASE_DEPLOY_KEY secret (the JSON key of a service account used only for deploying).
+    # Without the secret, nothing is deployed and the run does not fail.
+    needs: probar
+    # Only main deploys: a push to any other branch runs the tests and stops there.
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    env:
+      HAS_KEY: ${{ secrets.FIREBASE_DEPLOY_KEY != '' }}
+    steps:
+      - name: Sin clave de despliegue
+        if: env.HAS_KEY != 'true'
+        run: echo "Falta el secreto FIREBASE_DEPLOY_KEY; no se despliega."
+
+      - uses: actions/checkout@v4
+        if: env.HAS_KEY == 'true'
+
+      - uses: actions/setup-node@v4
+        if: env.HAS_KEY == 'true'
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: functions/package-lock.json
+
+      - uses: google-github-actions/auth@v2
+        if: env.HAS_KEY == 'true'
+        with:
+          credentials_json: ${{ secrets.FIREBASE_DEPLOY_KEY }}
+
+      - name: Instalar
+        if: env.HAS_KEY == 'true'
+        run: npm ci --prefix functions
+
+      - name: Revisar la cuenta y los secretos
+        # Reports which roles the account is missing and whether the AI secrets are in Secret Manager.
+        if: env.HAS_KEY == 'true'
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
+          CLAUDE_MODEL: ${{ secrets.CLAUDE_MODEL }}
+        run: node .github/deploy_check.js
+
+      - name: Desplegar
+        if: env.HAS_KEY == 'true'
+        run: npx --yes firebase-tools@15 deploy --only functions,firestore --project earcaster --non-interactive --force
+
+      - name: Probar la función desplegada
+        # With temporary accounts that are deleted at the end: voices, preview and four questions.
+        if: env.HAS_KEY == 'true'
+        run: python3 .github/ai_smoke.py
+
+      - name: Ver los errores de la función
+        if: failure() && env.HAS_KEY == 'true'
+        run: node .github/function_logs.js

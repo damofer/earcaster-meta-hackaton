@@ -1,0 +1,95 @@
+rules_version = '2';
+
+// Earcaster's Firestore rules (spec 015). Published with the rules API or, by hand,
+// by pasting them into the Firebase console: Firestore Database › Rules › Publish.
+service cloud.firestore {
+  match /databases/{db}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function patient(pid) {
+      return get(/databases/$(db)/documents/patients/$(pid)).data;
+    }
+
+    // The caregiver who owns the patient.
+    function isCaregiver(pid) {
+      return signedIn() && patient(pid).caregiverUid == request.auth.uid;
+    }
+
+    // A phone linked to that patient.
+    function isDevice(pid) {
+      return signedIn() && exists(/databases/$(db)/documents/patients/$(pid)/devices/$(request.auth.uid));
+    }
+
+    match /caregivers/{uid} {
+      allow read, write: if signedIn() && request.auth.uid == uid;
+    }
+
+    match /patients/{pid} {
+      allow list: if signedIn() && resource.data.caregiverUid == request.auth.uid;
+      allow get: if signedIn() && (resource.data.caregiverUid == request.auth.uid || isDevice(pid));
+      allow create: if signedIn() && request.resource.data.caregiverUid == request.auth.uid;
+      allow delete: if signedIn() && resource.data.caregiverUid == request.auth.uid;
+      // The caregiver changes everything except the owner; the linked phone only its status.
+      allow update: if signedIn() && (
+          (resource.data.caregiverUid == request.auth.uid
+              && request.resource.data.caregiverUid == request.auth.uid)
+          || (isDevice(pid)
+              && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['seenAt', 'listening', 'lastHelp'])));
+
+      match /sounds/{sid} {
+        allow read: if isCaregiver(pid) || isDevice(pid);
+        allow write: if isCaregiver(pid);
+      }
+
+      match /doses/{id} {
+        // The same dose may arrive twice (same id): that is why update is allowed too.
+        allow read, create, update: if isCaregiver(pid) || isDevice(pid);
+        allow delete: if isCaregiver(pid);
+      }
+
+      match /events/{id} {
+        allow read, delete: if isCaregiver(pid);
+        allow create: if isDevice(pid);
+      }
+
+      // The profile for the AI (spec 016): caregiver only; the person's phone does not need it.
+      match /private/{doc} {
+        allow read, write: if isCaregiver(pid);
+      }
+
+      // The AI (spec 017): only the function writes. The caregiver reads and deletes the 7-day
+      // conversations and sees the daily counter; deletes the counter only when deleting the patient.
+      match /talks/{id} {
+        allow read, delete: if isCaregiver(pid);
+      }
+
+      match /usage/{day} {
+        allow read, delete: if isCaregiver(pid);
+      }
+
+      match /devices/{uid} {
+        allow read, delete: if isCaregiver(pid) || (signedIn() && request.auth.uid == uid);
+        allow update: if signedIn() && request.auth.uid == uid;
+        // Linking: the phone adds itself with a valid code for this patient.
+        allow create: if signedIn() && request.auth.uid == uid
+            && request.resource.data.code is string
+            && get(/databases/$(db)/documents/links/$(request.resource.data.code)).data.pid == pid
+            && get(/databases/$(db)/documents/links/$(request.resource.data.code)).data.expiresAt > request.time;
+      }
+    }
+
+    // Linking codes: read one at a time, never as a list, and they expire after 10 minutes.
+    // Deleted by the caregiver or by the phone that just linked with them (single use).
+    match /links/{code} {
+      allow get: if signedIn() && resource.data.expiresAt > request.time;
+      allow list: if false;
+      allow create: if signedIn() && request.resource.data.caregiverUid == request.auth.uid
+          && isCaregiver(request.resource.data.pid);
+      allow delete: if signedIn() && (resource.data.caregiverUid == request.auth.uid
+          || get(/databases/$(db)/documents/patients/$(resource.data.pid)/devices/$(request.auth.uid)).data.code == code);
+    }
+  }
+}

@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- First run: who is going to use this phone? (spec 015, R1) -->
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/bg"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="vertical"
+        android:padding="24dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/app_name"
+            android:textAppearance="?attr/textAppearanceTitleLarge"
+            android:textColor="@color/accent"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:text="@string/quien_va_a_usar_este"
+            android:textColor="?attr/colorOnSurface"
+            android:textSize="30sp"
+            android:textStyle="bold" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/welcome_caregiver"
+            android:layout_width="match_parent"
+            android:layout_height="80dp"
+            android:layout_marginTop="32dp"
+            android:text="@string/soy_el_cuidador"
+            android:textSize="20sp"
+            app:cornerRadius="24dp" />
+
+        <TextView
+            style="@style/Hint"
+            android:layout_marginTop="8dp"
+            android:text="@string/welcome_configuras_desde_aqui_las_frases" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/welcome_patient"
+            android:layout_width="match_parent"
+            android:layout_height="80dp"
+            android:layout_marginTop="24dp"
+            android:text="@string/es_para_la_persona_que"
+            android:textSize="20sp"
+            app:cornerRadius="24dp" />
+
+        <TextView
+            style="@style/Hint"
+            android:layout_marginTop="8dp"
+            android:text="@string/welcome_este_telefono_solo_escucha_y" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/welcome_solo"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="32dp"
+            android:text="@string/usar_en_un_solo_telefono" />
+
+        <TextView
+            android:id="@+id/welcome_note"
+            style="@style/Hint"
+            android:layout_marginTop="4dp"
+            android:gravity="center"
+            android:text="@string/welcome_como_hasta_ahora_todo_se" />
+
+        <!-- The app's language (Lang): its label names it in both languages, so anyone can find it. -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/welcome_language"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:text="@string/language" />
+    </LinearLayout>
+</ScrollView>

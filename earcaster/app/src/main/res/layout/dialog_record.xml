@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center_horizontal"
+    android:orientation="vertical"
+    android:padding="24dp">
+
+    <TextView
+        android:id="@+id/rec_time"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:fontFamily="monospace"
+        android:text="0:00"
+        android:textColor="@color/text"
+        android:textSize="44sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/rec_hint"
+        style="@style/Hint"
+        android:layout_marginTop="4dp"
+        android:layout_marginBottom="20dp"
+        android:gravity="center"
+        android:text="@string/record_pulsa_grabar_y_haz_el" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/rec_toggle"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:backgroundTint="@color/danger"
+        android:text="@string/grabar"
+        android:textSize="17sp"
+        app:cornerRadius="30dp" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/rec_play"
+        style="@style/Widget.Material3.Button.TextButton"
+        android:layout_width="match_parent"
+        android:layout_height="52dp"
+        android:layout_marginTop="8dp"
+        android:enabled="false"
+        android:text="@string/escuchar_la_grabacion"
+        android:textAllCaps="false"
+        android:textSize="16sp" />
+</LinearLayout>

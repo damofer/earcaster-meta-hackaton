@@ -1,0 +1,22 @@
+{
+  "name": "earcaster-functions",
+  "private": true,
+  "description": "Conversación con IA de Earcaster (spec 017): Claude responde y ElevenLabs pone la voz.",
+  "main": "lib/index.js",
+  "engines": {
+    "node": "22"
+  },
+  "scripts": {
+    "build": "tsc",
+    "test": "tsc && node --test \"lib/test/*.test.js\""
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.135.0",
+    "firebase-admin": "^14.5.0",
+    "firebase-functions": "^7.4.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.6.0"
+  }
+}

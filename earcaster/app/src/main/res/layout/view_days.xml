@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Days of the week, Monday to Sunday. Used by recurring visits and reminders. -->
+<com.google.android.material.chip.ChipGroup xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/days"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    app:chipSpacingHorizontal="4dp">
+
+    <com.google.android.material.chip.Chip
+        android:id="@+id/day_mon"
+        style="@style/Widget.Material3.Chip.Filter"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:contentDescription="@string/lunes"
+        android:text="@string/day_letter_l" />
+
+    <com.google.android.material.chip.Chip
+        android:id="@+id/day_tue"
+        style="@style/Widget.Material3.Chip.Filter"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:contentDescription="@string/martes"
+        android:text="@string/day_letter_m" />
+
+    <com.google.android.material.chip.Chip
+        android:id="@+id/day_wed"
+        style="@style/Widget.Material3.Chip.Filter"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:contentDescription="@string/miercoles"
+        android:text="@string/day_letter_x" />
+
+    <com.google.android.material.chip.Chip
+        android:id="@+id/day_thu"
+        style="@style/Widget.Material3.Chip.Filter"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:contentDescription="@string/jueves"
+        android:text="@string/day_letter_j" />
+
+    <com.google.android.material.chip.Chip
+        android:id="@+id/day_fri"
+        style="@style/Widget.Material3.Chip.Filter"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:contentDescription="@string/viernes"
+        android:text="@string/day_letter_v" />
+
+    <com.google.android.material.chip.Chip
+        android:id="@+id/day_sat"
+        style="@style/Widget.Material3.Chip.Filter"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:contentDescription="@string/sabado"
+        android:text="@string/day_letter_s" />
+
+    <com.google.android.material.chip.Chip
+        android:id="@+id/day_sun"
+        style="@style/Widget.Material3.Chip.Filter"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:contentDescription="@string/domingo"
+        android:text="@string/day_letter_d" />
+</com.google.android.material.chip.ChipGroup>
