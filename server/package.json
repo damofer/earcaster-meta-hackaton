@@ -1,0 +1,20 @@
+{
+  "name": "earcaster-muse",
+  "private": true,
+  "description": "Earcaster's answer engine on Meta's Muse Spark: grounded, checked, spoken-length answers for people living with dementia.",
+  "main": "lib/index.js",
+  "engines": {
+    "node": "22"
+  },
+  "scripts": {
+    "build": "tsc",
+    "test": "tsc && node --test \"lib/test/*.test.js\""
+  },
+  "dependencies": {
+    "firebase-functions": "^7.4.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.6.0"
+  }
+}

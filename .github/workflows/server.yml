@@ -1,0 +1,62 @@
+name: Server
+
+on:
+  push:
+    paths:
+      - 'server/**'
+      - 'firebase.json'
+      - '.github/workflows/server.yml'
+  pull_request:
+    paths:
+      - 'server/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: server/package-lock.json
+      - name: Test
+        working-directory: server
+        run: |
+          npm ci
+          npm test
+
+  deploy:
+    # Deploys only the "muse" codebase, so Earcaster's own functions in the same Firebase project are untouched.
+    # Needs the FIREBASE_DEPLOY_KEY repository secret, and META_API_KEY and ENGINE_TOKEN in Secret Manager.
+    needs: test
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    env:
+      HAS_KEY: ${{ secrets.FIREBASE_DEPLOY_KEY != '' }}
+    steps:
+      - name: No deploy key
+        if: env.HAS_KEY != 'true'
+        run: echo "FIREBASE_DEPLOY_KEY is not set; nothing is deployed."
+      - uses: actions/checkout@v4
+        if: env.HAS_KEY == 'true'
+      - uses: actions/setup-node@v4
+        if: env.HAS_KEY == 'true'
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: server/package-lock.json
+      - uses: google-github-actions/auth@v2
+        if: env.HAS_KEY == 'true'
+        with:
+          credentials_json: ${{ secrets.FIREBASE_DEPLOY_KEY }}
+      - name: Install
+        if: env.HAS_KEY == 'true'
+        run: npm ci --prefix server
+      - name: Deploy
+        if: env.HAS_KEY == 'true'
+        run: npx --yes firebase-tools@15 deploy --only functions:muse --project earcaster --non-interactive
