@@ -20,4 +20,4 @@ Everything in this repository was written during the event. The commit history i
 | --- | --- |
 | Oct 27 | Answer engine on Muse Spark 1.3: streaming chat completions client, tool calling restricted to caregiver-allowed actions, per-sentence guard (medication, weekdays, hours, dates, names), tests against a fake Meta API |
 
-Outside this repository, also during the event: Earcaster got a setting for the caregiver to choose between Claude and Meta, which is how the app reaches this engine.
+Outside this repository, also during the event: Earcaster got a setting for the caregiver to choose between Claude and Meta. With Meta, Earcaster's backend calls this engine, sending names but never phone numbers.

@@ -11,8 +11,7 @@ What existed before and what was built here is spelled out in [HACKATHON.md](HAC
 | Part | What it does | Meta model | Status |
 | --- | --- | --- | --- |
 | [`server/`](server) | Answer engine: streams an answer from Muse Spark, checks every sentence before it is spoken, and turns tool calls into actions the caregiver allowed | Muse Spark 1.3 (Meta Model API) | Working, tested against a fake API; live test pending the API key |
-| `android/` | The same engine on the phone, with no internet | Llama 3.2 1B (open weights) | Next |
-| `demo/` | A small app to try both without Earcaster | | Next |
+| `demo/` | A small app to try the engine without Earcaster | | Next |
 
 ## How an answer is made safe
 
