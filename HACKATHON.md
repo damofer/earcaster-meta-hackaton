@@ -29,4 +29,5 @@ Everything outside `earcaster/`, and every change to `earcaster/` after the tag,
 | Oct 27 | Family updates engine (`museUpdates`, spec 020): a family message becomes visit or profile proposals, each traced to the message in code; medication messages never reach the model; phone numbers removed |
 | Oct 27 | Earcaster: share a family message to the app, see each proposed change as a card, approve or discard; one-off visits (`earcaster/`, spec 020) |
 | Oct 27 | Visit brief (`museBrief`, and in Earcaster the Assistant screen's "Before the visit", spec 021): the week for a relative about to visit, never suggesting to test her memory, shared with Android's Share |
+| Oct 27 | Change alert (`museTopics`, and in Earcaster daily trends, rules in code and alert cards, spec 022): a new worry that starts repeating, a busy day, night questions or more help alerts; sentences from templates, never about illness |
 
