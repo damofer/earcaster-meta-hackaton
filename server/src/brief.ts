@@ -93,19 +93,20 @@ export function briefPrompt(w: Week, s: WeekStats): string {
         `${w.visitor} va a visitar hoy a ${who}, que tiene problemas de memoria. Escribes para ${w.visitor} un resumen de la semana para que llegue preparado.`,
         `Como máximo ${MAX_BRIEF_SENTENCES} frases cortas, en español, cálidas y concretas, hablándole de tú a ${w.visitor}. Sin listas, títulos ni emojis.`,
         "Primero, qué preguntó y qué pareció preocuparle. Luego, tres temas para conversar que le hagan sentir bien, sacados solo de <ficha> y de <registro>.",
-        "Usa exactamente los números de <conteo>. Solo menciona personas, días y temas que aparezcan en <ficha> o <registro>.",
+        `Las preguntas sobre ${w.visitor} se cuentan como «preguntó por ti».`,
+        "Usa exactamente los números de <conteo>, escritos una sola vez (por ejemplo «preguntó 3 veces si venías»). Solo menciona personas, días y temas que aparezcan en <ficha> o <registro>.",
         "Nunca des consejos médicos. Nunca sugieras corregirla ni preguntarle si se acuerda de algo.",
       ]
     : [
         `${w.visitor} is visiting ${who}, who has memory problems, today. You write ${w.visitor} a brief of the week so they arrive ready.`,
         `At most ${MAX_BRIEF_SENTENCES} short sentences in English, warm and concrete, speaking to ${w.visitor} as "you". No lists, headings or emoji.`,
         "First, what they asked about and what seemed to worry them. Then three topics to talk about that will make them feel good, taken only from <profile> and <log>.",
-        "Use exactly the numbers in <counts>. Only mention people, days and topics that appear in <profile> or <log>.",
+        "Use exactly the numbers in <counts>, each written once (for example \"asked 3 times whether you were coming\"). Only mention people, days and topics that appear in <profile> or <log>.",
         "Never give medical advice. Never suggest correcting them or asking whether they remember something.",
       ];
   const counts = es
-    ? `Semana: ${w.range}\nPreguntas al asistente: ${s.questions}\nPreguntas por ${w.visitor}: ${s.aboutVisitor}\nPreguntas repetidas: ${s.repeated.map((r) => `«${r.text}» (${r.times} veces)`).join(", ") || "ninguna"}\nTomas sin anotar: ${s.missedDoses}\nAvisos de ayuda: ${s.helpAlerts}`
-    : `Week: ${w.range}\nQuestions to the assistant: ${s.questions}\nQuestions about ${w.visitor}: ${s.aboutVisitor}\nRepeated questions: ${s.repeated.map((r) => `"${r.text}" (${r.times} times)`).join(", ") || "none"}\nDoses not logged: ${s.missedDoses}\nHelp alerts: ${s.helpAlerts}`;
+    ? `Semana: ${w.range}\nPreguntas al asistente: ${s.questions}\nVeces que preguntó por ${w.visitor} (por ti): ${s.aboutVisitor}\nPreguntas repetidas: ${s.repeated.map((r) => `«${r.text}», ${r.times}`).join("; ") || "ninguna"}\nTomas sin anotar: ${s.missedDoses}\nAvisos de ayuda: ${s.helpAlerts}`
+    : `Week: ${w.range}\nQuestions to the assistant: ${s.questions}\nTimes they asked about ${w.visitor} (you): ${s.aboutVisitor}\nRepeated questions: ${s.repeated.map((r) => `"${r.text}" (${r.times} times)`).join(", ") || "none"}\nDoses not logged: ${s.missedDoses}\nHelp alerts: ${s.helpAlerts}`;
   const p = w.profile;
   const profile = [p.family, p.home, p.routine, p.likes, p.free].filter(Boolean).join("\n");
   const log = [

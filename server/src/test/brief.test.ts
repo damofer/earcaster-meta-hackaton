@@ -27,7 +27,7 @@ test("the week's counts are made in code (spec 021)", () => {
     missedDoses: 1,
     helpAlerts: 0,
   });
-  assert.match(briefPrompt(week, weekStatsOf(week)), /Preguntas por Lucía: 2/);
+  assert.match(briefPrompt(week, weekStatsOf(week)), /Veces que preguntó por Lucía \(por ti\): 2\nPreguntas repetidas: «¿Viene Lucía hoy\?», 2\n/);
   assert.equal(weekFrom({ range: "x" }), null);
 });
 
