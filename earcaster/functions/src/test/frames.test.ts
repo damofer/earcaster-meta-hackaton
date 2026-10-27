@@ -19,8 +19,14 @@ test("el audio va en bytes pares", () => {
 });
 
 test("ajustes de la IA", () => {
-  assert.deepEqual(aiSettings(undefined), { on: false, name: "Clara", voice: "", max: 50 });
-  assert.deepEqual(aiSettings("roto"), { on: false, name: "Clara", voice: "", max: 50 });
+  assert.deepEqual(aiSettings(undefined), { on: false, name: "Clara", voice: "", max: 50, model: "claude" });
+  assert.deepEqual(aiSettings("roto"), { on: false, name: "Clara", voice: "", max: 50, model: "claude" });
   assert.deepEqual(aiSettings(JSON.stringify({ ai_on: true, ai_name: " Lucía ", ai_voice: "v1", ai_max: 9999 })),
-    { on: true, name: "Lucía", voice: "v1", max: 500 });
+    { on: true, name: "Lucía", voice: "v1", max: 500, model: "claude" });
+});
+
+test("modelo de la IA (spec 018)", () => {
+  assert.equal(aiSettings(JSON.stringify({ ai_model: "meta" })).model, "meta");
+  assert.equal(aiSettings(JSON.stringify({ ai_model: "claude" })).model, "claude");
+  assert.equal(aiSettings(JSON.stringify({ ai_model: "otro" })).model, "claude");
 });

@@ -1,11 +1,11 @@
 // Before deploying (spec 017): reports which account deploys, which permissions it is missing and whether
-// the three AI secrets are in Secret Manager (and whether any is only in the GitHub secrets).
+// the AI secrets are in Secret Manager (and whether any is only in the GitHub secrets).
 const fs = require("fs");
 const path = require("path");
 const { GoogleAuth } = require(require.resolve("google-auth-library", { paths: [path.join(__dirname, "..", "functions")] }));
 
 const PROJECT = "earcaster";
-const SECRETS = ["ANTHROPIC_API_KEY", "ELEVENLABS_API_KEY", "CLAUDE_MODEL"];
+const SECRETS = ["ANTHROPIC_API_KEY", "ELEVENLABS_API_KEY", "CLAUDE_MODEL", "META_API_KEY"];
 // Permission used by the deploy → role that grants it
 const NEEDED = {
   "serviceusage.services.get": "Editor",

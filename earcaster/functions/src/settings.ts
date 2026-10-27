@@ -21,5 +21,7 @@ export function aiSettings(config: string | undefined, lang: Lang = "es"): AiSet
     name,
     voice: typeof o.ai_voice === "string" ? o.ai_voice : "",
     max,
+    // Anything other than "meta" keeps Claude, the model every patient had before spec 018.
+    model: o.ai_model === "meta" ? "meta" : "claude",
   };
 }

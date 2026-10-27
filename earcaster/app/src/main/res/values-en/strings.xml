@@ -243,7 +243,7 @@
     <string name="ai_usage_max">Today it reached the maximum: %1$d answers. Until tomorrow only their phrases answer.</string>
     <string name="ai_usage">Today: %1$d of %2$d answers.</string>
     <string name="ai_consent_title">What leaves their phone</string>
-    <string name="ai_consent_msg">Every time the person talks to the assistant, this leaves their phone:\n\n• the text of what they said (the audio never leaves);\n• the profile you wrote;\n• the time, their upcoming visits and today\'s doses.\n\nIt goes to Anthropic (Claude, which writes the answer) and to ElevenLabs (which provides the voice), through our server on Google Firebase. Conversations are kept for 7 days so you can see them here, and then they are deleted automatically.\n\nThe assistant is not a medical or emergency service.</string>
+    <string name="ai_consent_msg">Every time the person talks to the assistant, this leaves their phone:\n\n• the text of what they said (the audio never leaves);\n• the profile you wrote;\n• the time, their upcoming visits and today\'s doses.\n\nIt goes to the company behind the AI model you choose, which writes the answer (Anthropic for Claude or Meta for Muse Spark), and to ElevenLabs (which provides the voice), through our server on Google Firebase. Conversations are kept for 7 days so you can see them here, and then they are deleted automatically.\n\nThe assistant is not a medical or emergency service.</string>
     <string name="accept">I accept</string>
     <string name="cancel">Cancel</string>
     <string name="ai_finding_voices">Looking for the voices…</string>
@@ -494,4 +494,11 @@
     <string name="language_label">Language · Idioma: %1$s</string>
     <string name="language_system">Same as the phone</string>
     <string name="language_restart_listening">I stopped listening to change the language. Start listening again.</string>
+    <!-- Spec 018: who writes the answers -->
+    <string name="modelo_de_ia">AI MODEL</string>
+    <string name="ai_model_claude">Claude</string>
+    <string name="ai_model_meta">Meta</string>
+    <string name="ai_model_hint">Who writes the answers: Claude, by Anthropic, or Muse Spark, by Meta. The rules, the profile and the voice are the same with both.</string>
+    <string name="ai_model_meta_title">Meta will write the answers</string>
+    <string name="ai_model_meta_msg">With Muse Spark, the text of what the person says, the profile, the time, their visits and today\'s doses will go to Meta instead of Anthropic. The voice is still ElevenLabs.</string>
 </resources>

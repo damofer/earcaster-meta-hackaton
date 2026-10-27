@@ -67,6 +67,44 @@
                     android:maxLength="30" />
             </com.google.android.material.textfield.TextInputLayout>
 
+            <!-- Who writes the answers (spec 018) -->
+            <TextView
+                style="@style/Label"
+                android:layout_marginTop="16dp"
+                android:text="@string/modelo_de_ia" />
+
+            <com.google.android.material.button.MaterialButtonToggleGroup
+                android:id="@+id/ai_model"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                app:checkedButton="@+id/ai_model_claude"
+                app:selectionRequired="true"
+                app:singleSelection="true">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/ai_model_claude"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    android:layout_width="0dp"
+                    android:layout_height="52dp"
+                    android:layout_weight="1"
+                    android:text="@string/ai_model_claude"
+                    android:textSize="15sp" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/ai_model_meta"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    android:layout_width="0dp"
+                    android:layout_height="52dp"
+                    android:layout_weight="1"
+                    android:text="@string/ai_model_meta"
+                    android:textSize="15sp" />
+            </com.google.android.material.button.MaterialButtonToggleGroup>
+
+            <TextView
+                style="@style/Hint"
+                android:text="@string/ai_model_hint" />
+
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

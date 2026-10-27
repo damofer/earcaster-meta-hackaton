@@ -13,6 +13,7 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.google.android.material.button.MaterialButtonToggleGroup;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.materialswitch.MaterialSwitch;
 import com.google.firebase.firestore.ListenerRegistration;
@@ -28,8 +29,8 @@ import java.util.Map;
 
 /**
  * A patient's AI assistant (spec 017), on the caregiver's phone: turn it on after accepting
- * what data leaves the phone (R13), its name, its voice (R7), the fallback phrase (R8), the daily maximum (R11), the
- * experimental option (R2) and the conversations from the last 7 days (R10).
+ * what data leaves the phone (R13), its name, the model that writes the answers (spec 018), its voice (R7), the fallback
+ * phrase (R8), the daily maximum (R11), the experimental option (R2) and the conversations from the last 7 days (R10).
  */
 public class AiActivity extends AppCompatActivity {
 
@@ -43,6 +44,7 @@ public class AiActivity extends AppCompatActivity {
     private String pid;
     private MaterialSwitch on;
     private EditText name;
+    private MaterialButtonToggleGroup model;
     private EditText fallback;
     private EditText max;
     private MaterialSwitch any;
@@ -73,6 +75,7 @@ public class AiActivity extends AppCompatActivity {
                 TextUtils.isEmpty(patientName) ? getString(R.string.asistente) : getString(R.string.ai_title_of, patientName));
         on = findViewById(R.id.ai_on);
         name = findViewById(R.id.ai_name);
+        model = findViewById(R.id.ai_model);
         fallback = findViewById(R.id.ai_fallback);
         max = findViewById(R.id.ai_max);
         any = findViewById(R.id.ai_any);
@@ -82,6 +85,11 @@ public class AiActivity extends AppCompatActivity {
 
         on.setOnCheckedChangeListener((b, checked) -> {
             if (checked && saved != null && Boolean.FALSE.equals(consent)) askConsent();
+        });
+        model.addOnButtonCheckedListener((g, id, checked) -> {
+            // Switching to Meta sends the data to another company: the caregiver reads it first (R13, spec 018).
+            if (checked && id == R.id.ai_model_meta && saved != null
+                    && !Prefs.AI_MODEL_META.equals(saved.get(Prefs.AI_MODEL))) askMeta();
         });
         findViewById(R.id.ai_voice).setOnClickListener(v -> chooseVoice());
         findViewById(R.id.ai_save).setOnClickListener(v -> save(true));
@@ -119,7 +127,7 @@ public class AiActivity extends AppCompatActivity {
     }
 
     private void setEnabled(boolean enabled) {
-        for (View v : new View[]{on, name, fallback, max, any, findViewById(R.id.ai_voice), findViewById(R.id.ai_save)}) {
+        for (View v : new View[]{on, name, model, fallback, max, any, findViewById(R.id.ai_voice), findViewById(R.id.ai_save)}) {
             v.setEnabled(enabled);
         }
     }
@@ -133,6 +141,7 @@ public class AiActivity extends AppCompatActivity {
         }
         on.setChecked(o.optBoolean(Prefs.AI_ON, false));
         name.setText(o.optString(Prefs.AI_NAME, Prefs.defaultAiName()));
+        model.check(Prefs.AI_MODEL_META.equals(o.optString(Prefs.AI_MODEL)) ? R.id.ai_model_meta : R.id.ai_model_claude);
         fallback.setText(o.optString(Prefs.AI_FALLBACK, Prefs.defaultAiFallback()));
         max.setText(String.valueOf(o.optInt(Prefs.AI_MAX, Prefs.DEFAULT_AI_MAX)));
         any.setChecked(o.optBoolean(Prefs.AI_ANY, false));
@@ -149,6 +158,7 @@ public class AiActivity extends AppCompatActivity {
         m.put(Prefs.AI_ON, on.isChecked());
         String n = name.getText().toString().trim();
         m.put(Prefs.AI_NAME, n.isEmpty() ? Prefs.defaultAiName() : n);
+        m.put(Prefs.AI_MODEL, model.getCheckedButtonId() == R.id.ai_model_meta ? Prefs.AI_MODEL_META : Prefs.AI_MODEL_CLAUDE);
         String f = fallback.getText().toString().trim();
         m.put(Prefs.AI_FALLBACK, f.isEmpty() ? Prefs.defaultAiFallback() : f);
         int limit;
@@ -193,6 +203,16 @@ public class AiActivity extends AppCompatActivity {
                     }
                 }))
                 .setNegativeButton(R.string.cancel, (d, w) -> on.setChecked(false))
+                .show();
+    }
+
+    private void askMeta() {
+        new MaterialAlertDialogBuilder(this)
+                .setTitle(R.string.ai_model_meta_title)
+                .setMessage(R.string.ai_model_meta_msg)
+                .setCancelable(false)
+                .setPositiveButton(R.string.accept, null)
+                .setNegativeButton(R.string.cancel, (d, w) -> model.check(R.id.ai_model_claude))
                 .show();
     }
 

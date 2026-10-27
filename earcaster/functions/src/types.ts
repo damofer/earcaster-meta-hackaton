@@ -28,12 +28,16 @@ export interface Facts {
   doses: string[];
 }
 
+/** Who writes the answers (spec 018): Claude (Anthropic) or Muse Spark (Meta). */
+export type AiModel = "claude" | "meta";
+
 /** AI settings the caregiver saves in the patient's settings (spec 015). */
 export interface AiSettings {
   on: boolean;
   name: string;
   voice: string;
   max: number;
+  model: AiModel;
 }
 
 export interface Turn {

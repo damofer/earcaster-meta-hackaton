@@ -116,6 +116,17 @@ try:
         ok = ok and r['status'] == 200 and bool(r['end'] and r['end'].get('ok'))
         # A spoken reply must arrive with audio.
         if r['texts']: ok = ok and bool(r['end'].get('voice')) and r['audio'] > 0
+
+    # The same patient with Meta's Muse Spark (spec 018).
+    meta = json.dumps({**json.loads(config), 'ai_model': 'meta'})
+    st, _ = http('PATCH', FS + '/patients/' + pid + '?updateMask.fieldPaths=config',
+                 {'fields': {'config': {'stringValue': meta}}}, cg_tok)
+    assert st == 200, st
+    for q in ['ana viene hoy', 'llama a mi hijo']:
+        r = stream(ph_tok, {'pid': pid, 'text': q, 'day': day, 'facts': facts})
+        print(f"Meta «{q}» -> {r['status']} {r['texts']} acción={r['action']} fin={r['end']} "
+              f"texto={r['first_text'] and round(r['first_text'], 2)}s total={r.get('total') and round(r['total'], 2)}s")
+        ok = ok and r['status'] == 200 and bool(r['end'] and r['end'].get('ok'))
 finally:
     st, q = http('GET', FS + '/patients/' + pid + '/talks', None, cg_tok)
     for d in (q.get('documents', []) if isinstance(q, dict) else []):

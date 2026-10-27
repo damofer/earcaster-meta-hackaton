@@ -126,6 +126,10 @@ final class Prefs {
     static final String AI_FALLBACK = "ai_fallback";
     static final String AI_MAX = "ai_max";
     static final int DEFAULT_AI_MAX = 50;
+    /** Who writes the answers (spec 018): "claude" or "meta". Only the function reads it. */
+    static final String AI_MODEL = "ai_model";
+    static final String AI_MODEL_CLAUDE = "claude";
+    static final String AI_MODEL_META = "meta";
 
     /** The assistant is Clara in Spanish and Grace in English. */
     static String defaultAiName() {
@@ -170,6 +174,10 @@ final class Prefs {
         return sp(c).getInt(AI_MAX, DEFAULT_AI_MAX);
     }
 
+    static String aiModel(Context c) {
+        return AI_MODEL_META.equals(sp(c).getString(AI_MODEL, "")) ? AI_MODEL_META : AI_MODEL_CLAUDE;
+    }
+
     // --- A patient's settings in the cloud (spec 015) ---
 
     /**
@@ -195,6 +203,7 @@ final class Prefs {
             o.put(AI_VOICE_NAME, aiVoiceName(c));
             o.put(AI_FALLBACK, aiFallback(c));
             o.put(AI_MAX, aiMax(c));
+            o.put(AI_MODEL, aiModel(c));
         } catch (JSONException ignored) {
         }
         return o.toString();
@@ -221,6 +230,7 @@ final class Prefs {
             if (o.has(AI_VOICE_NAME)) e.putString(AI_VOICE_NAME, o.getString(AI_VOICE_NAME));
             if (o.has(AI_FALLBACK)) e.putString(AI_FALLBACK, o.getString(AI_FALLBACK));
             if (o.has(AI_MAX)) e.putInt(AI_MAX, o.getInt(AI_MAX));
+            if (o.has(AI_MODEL)) e.putString(AI_MODEL, o.getString(AI_MODEL));
             e.commit();
         } catch (JSONException ignored) {
         }
