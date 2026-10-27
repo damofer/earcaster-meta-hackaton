@@ -73,3 +73,9 @@ jobs:
       - name: Deploy
         if: steps.secrets.outputs.ready == 'true'
         run: npx --yes firebase-tools@15 deploy --only functions:muse --project earcaster --non-interactive
+      - name: Try the deployed engine with a made-up person
+        if: steps.secrets.outputs.ready == 'true'
+        run: |
+          export ENGINE_TOKEN="$(gcloud secrets versions access latest --secret=ENGINE_TOKEN --project=earcaster)"
+          echo "::add-mask::$ENGINE_TOKEN"
+          node .github/smoke.mjs
