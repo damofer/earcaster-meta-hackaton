@@ -54,9 +54,22 @@ jobs:
         if: env.HAS_KEY == 'true'
         with:
           credentials_json: ${{ secrets.FIREBASE_DEPLOY_KEY }}
-      - name: Install
+      - name: Check the secrets
+        # Until Meta's credits arrive there is no META_API_KEY: skip the deploy instead of failing.
+        id: secrets
         if: env.HAS_KEY == 'true'
+        run: |
+          for s in META_API_KEY ENGINE_TOKEN; do
+            if ! gcloud secrets versions describe latest --secret="$s" --project=earcaster >/dev/null 2>&1; then
+              echo "::warning::$s is not in Secret Manager yet (or this account cannot see it); nothing is deployed."
+              echo "ready=false" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+          done
+          echo "ready=true" >> "$GITHUB_OUTPUT"
+      - name: Install
+        if: steps.secrets.outputs.ready == 'true'
         run: npm ci --prefix server
       - name: Deploy
-        if: env.HAS_KEY == 'true'
+        if: steps.secrets.outputs.ready == 'true'
         run: npx --yes firebase-tools@15 deploy --only functions:muse --project earcaster --non-interactive
