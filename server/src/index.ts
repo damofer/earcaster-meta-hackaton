@@ -19,6 +19,7 @@ import { Budget, demoQuestion } from "./demo";
 import { answer } from "./engine";
 import { MUSE_MODEL } from "./muse";
 import { questionFrom } from "./request";
+import { dayFrom, summarize } from "./summary";
 import { Question, langFrom } from "./types";
 
 const META_API_KEY = defineSecret("META_API_KEY");
@@ -97,5 +98,34 @@ export const museDemo = onRequest(
       return;
     }
     await stream(demoQuestion(text, langFrom(body.lang)), META_API_KEY.value().trim(), res);
+  },
+);
+
+/**
+ * The caregiver's daily summary (summary.ts). Earcaster's backend sends the day's log, already without phone numbers,
+ * and gets back a few checked sentences and the counts behind them.
+ */
+export const museSummary = onRequest(
+  { secrets: [META_API_KEY, ENGINE_TOKEN], timeoutSeconds: 60, memory: "256MiB" },
+  async (req, res) => {
+    if (req.method !== "POST") {
+      res.status(405).end();
+      return;
+    }
+    if (!authorized(req.get("authorization"), ENGINE_TOKEN.value().trim())) {
+      res.status(401).end();
+      return;
+    }
+    const day = dayFrom(req.body);
+    if (!day) {
+      res.status(400).end();
+      return;
+    }
+    try {
+      res.json({ ...(await summarize(day, META_API_KEY.value().trim())), model: MUSE_MODEL });
+    } catch (e) {
+      logger.error("Muse Spark could not write the summary", e);
+      res.status(502).end();
+    }
   },
 );
