@@ -19,7 +19,7 @@ The same questions every day are expected. What a family wants to notice early i
 
 - **R1.** At most once a day, when the caregiver opens **Assistant**, Earcaster compares the last 3 days with the 14 days before.
 - **R2.** The changes are detected **in code**, not by the model: (a) a new topic asked at least 3 times in 3 days that was not asked before; (b) twice as many questions as the usual daily average, with at least 10; (c) questions between 10 PM and 5 AM on 2 or more nights, when there were none before; (d) at least 2 help alerts in the last 3 days, and more than in the 14 days before.
-- **R3.** Grouping questions into topics ("¿dónde está Jorge?" and "¿Jorge ya llegó?" are the same topic) is done by Muse Spark, which may only group the questions it receives and must return the exact original texts.
+- **R3.** Grouping questions into topics ("¿dónde está Jorge?" and "¿Jorge ya llegó?" are the same topic) is done by Muse Spark, which may only group the questions it receives and must return the exact original texts. Only when the caregiver chose Meta for this patient (018): otherwise each question is its own topic, so opening the screen never sends questions to Meta.
 - **R4.** The alert is a card at the top of **Assistant**: what changed, since when, and two or three of the real questions, quoted. The sentence comes from a fixed template filled in code, not from the model, so it cannot contain any word about illness, diagnosis, decline or stage. A push notification is left for later.
 - **R5.** At most one alert per kind every 7 days. The caregiver can mark it **Seen** or **Not useful**; **Not useful** silences that topic for 30 days.
 - **R6.** With fewer than 7 days of history, there are no alerts. It uses the same consent as the conversations (017 R13).
@@ -35,7 +35,7 @@ The same questions every day are expected. What a family wants to notice early i
 ## Plan
 
 - **Engine:** `museTopics`, grouping with exact texts and labels taken from them, checked in code.
-- **Server:** each answer adds to `patients/{pid}/trends/{day}` (questions, night questions, count per question), kept 30 days, because conversations are kept only 7 (017). `changesNow` reads 17 days of trends and help alerts, groups the questions with `museTopics` (each question alone if the engine fails), runs the rules in `changes.ts` and writes `alerts/{kind-key}`.
+- **Server:** each answer adds to `patients/{pid}/trends/{day}` (questions, night questions, count per question), kept 30 days, because conversations are kept only 7 (017). `changesNow` reads 17 days of trends and help alerts, groups the questions with `museTopics` (only when the patient uses Meta; each question alone otherwise or if the engine fails), runs the rules in `changes.ts` and writes `alerts/{kind-key}`.
 - **App:** alert cards in **Assistant** with **Seen** and **Not useful**; the phone sends the hour with each question.
 
 ## Tasks

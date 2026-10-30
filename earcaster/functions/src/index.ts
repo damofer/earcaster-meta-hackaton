@@ -815,12 +815,13 @@ export const changesNow = onRequest(
         const helpAt = events.docs.map((d) => (d.get("at") instanceof Timestamp ? (d.get("at") as Timestamp).toMillis() : 0));
         const helpRecent = helpAt.filter((t) => t >= recentFrom).length;
         const helpBase = helpAt.filter((t) => t >= baseFrom && t < recentFrom).length;
-        // The most asked questions, grouped by Muse Spark; without it, each question is its own topic.
+        // The most asked questions, grouped by Muse Spark only when the caregiver chose Meta for this patient (018);
+        // otherwise, or without it, each question is its own topic. Opening the screen must not send them to Meta.
         const totals = new Map<string, number>();
         for (const t of trends) for (const [k, n] of Object.entries(t.texts)) totals.set(k, (totals.get(k) || 0) + n);
         const texts = [...totals.entries()].sort((a, b) => b[1] - a[1]).slice(0, 300).map(([k]) => k);
         let topics: Topic[] = texts.map((x) => ({ label: "", texts: [x] }));
-        if (texts.length) {
+        if (texts.length && aiSettings(snap.get("config"), lang).model === "meta") {
           try {
             topics = await askTopics(ENGINE_TOKEN.value().trim(), lang, texts);
           } catch (e) {
