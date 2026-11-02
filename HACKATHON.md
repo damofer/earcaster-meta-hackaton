@@ -31,4 +31,5 @@ Everything outside `earcaster/`, and every change to `earcaster/` after the tag,
 | Oct 27 | Visit brief (`museBrief`, and in Earcaster the Assistant screen's "Before the visit", spec 021): the week for a relative about to visit, never suggesting to test her memory, shared with Android's Share |
 | Oct 27 | Change alert (`museTopics`, and in Earcaster daily trends, rules in code and alert cards, spec 022): a new worry that starts repeating, a busy day, night questions or more help alerts; sentences from templates, never about illness |
 | Oct 27 | Tone: the voice always uses "tú", like the rest of the phone; the visit brief counts read naturally ("asked about you 2 times") |
+| Oct 30 | Earcaster: change-alert topics go to Meta only for patients whose caregiver chose Meta; opening the Assistant screen never sends other patients' questions (spec 022) |
 
