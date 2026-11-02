@@ -6,13 +6,25 @@ My great-aunt has Alzheimer's. Every day she asks the same questions: what day i
 
 What existed before and what was built here is spelled out in [HACKATHON.md](HACKATHON.md).
 
+## What it does with Meta's Muse Spark
+
+For the person, by voice:
+- **Answers any question** in a calm voice, from the caregiver's profile, the shared family calendar and today's doses. It can also call a relative when asked ("llama a mi hijo"). Every sentence is checked in code before it is spoken (below).
+
+For the caregiver, in Earcaster's caregiver mode:
+- **Daily summary** (spec 019): how the day went, from the conversations, doses and help alerts. Counts are made in code; the model only words them.
+- **Update from a family message** (spec 020): share a WhatsApp message like "I'll come Sunday at 5" to Earcaster and it proposes the visit or profile change. Each proposal must be traced to the message in code, nothing changes until the caregiver taps Approve, and messages about medication never reach the model.
+- **Visit brief** (spec 021): before visiting, a relative gets the week in a few sentences and three good topics to talk about, never a suggestion to test her memory.
+- **Change alert** (spec 022): when a new worry starts repeating, nights get restless or help alerts rise. Muse Spark groups the questions into topics; the rules and the alert sentence are code.
+
 ## What is in here
 
-| Part | What it does | Meta model | Status |
-| --- | --- | --- | --- |
-| [`earcaster/`](earcaster) | The Android app and its backend. **Pre-hackathon base** up to the tag `earcaster-pre-hackathon`; event changes come after it | Muse Spark 1.3, through `server/` | Base from Oct 24; event changes listed in HACKATHON.md |
-| [`server/`](server) | Answer engine: streams an answer from Muse Spark, checks every sentence before it is spoken, and turns tool calls into actions the caregiver allowed | Muse Spark 1.3 (Meta Model API) | Working, tested against a fake API; live test pending the API key |
-| [`demo/`](demo) | A web page to try the engine with a made-up person, no account needed; it shows which sentences the guard removed and what the phone would do | Muse Spark 1.3 | Built; goes live with the server deploy |
+| Part | What it does |
+| --- | --- |
+| [`server/`](server) | The `muse` Cloud Functions: `muse` (answers, streamed), `museSummary`, `museUpdates`, `museBrief`, `museTopics` and `museDemo`, all on Muse Spark 1.3 through the Meta Model API |
+| [`earcaster/`](earcaster) | The Android app and its backend. **Pre-hackathon base** up to the tag `earcaster-pre-hackathon`; the event changes (model choice, the four caregiver features) come after it |
+| [`demo/`](demo) | A web page to talk to the engine with a made-up person, no account needed; it shows which sentences the guard removed and what the phone would do |
+| [`.github/smoke.mjs`](.github/smoke.mjs) | The live test that runs after every deploy, with a fictional person |
 
 ## How an answer is made safe
 
@@ -24,11 +36,11 @@ A person with dementia cannot tell a made-up visit from a real one, so the rules
 
 A sentence that breaks 2 or 3 is replaced by "I don't have that written down", and nothing after it is said. Answers are capped at two sentences, so the voice can start speaking while the rest arrives.
 
-Privacy: only text reaches the engine (audio never leaves the phone), and phone numbers never reach Meta. The model only sees names; the caller maps a name back to its number.
+Privacy: only text reaches the engine (audio never leaves the phone), and phone numbers never reach Meta: the model only sees names, and numbers are removed from family messages before they are sent. Meta is used only when the caregiver chooses it for a patient or taps a Meta feature.
 
 ## Try it
 
-The demo page will be at https://damofer.github.io/earcaster-meta-hackaton/ once the server is deployed. It talks to `museDemo`, the same engine with a sample person, a daily budget and no real actions.
+Talk to the engine at **https://damofer.github.io/earcaster-meta-hackaton/**. It uses `museDemo`, the same engine with a made-up person, a daily budget and no real actions. The first sentence usually arrives in 2 to 4 seconds.
 
 ## Running the server tests
 
@@ -40,4 +52,4 @@ npm test
 
 ## License
 
-Apache License 2.0. Llama 3.2 weights are used under the Llama 3.2 Community License.
+Apache License 2.0.
